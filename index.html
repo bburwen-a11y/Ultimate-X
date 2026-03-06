@@ -1,0 +1,2858 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Ultimate X Poker">
+  <title>Ultimate X Video Poker - Final</title>
+
+  <!-- React and Babel -->
+
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: white;
+      overflow-x: hidden;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      min-height: 100vh;
+    }
+    #root { width: 100%; min-height: 100vh; }
+    
+    /* Tailwind-like utilities */
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
+    .flex { display: flex; }
+    .flex-col { flex-direction: column; }
+    .flex-wrap { flex-wrap: wrap; }
+    .items-center { align-items: center; }
+    .justify-center { justify-content: center; }
+    .justify-between { justify-content: space-between; }
+    .gap-1 { gap: 0.25rem; }
+    .gap-2 { gap: 0.5rem; }
+    .gap-3 { gap: 0.75rem; }
+    .gap-4 { gap: 1rem; }
+    .gap-6 { gap: 1.5rem; }
+    .grid { display: grid; }
+    .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid-cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    .p-2 { padding: 0.5rem; }
+    .p-3 { padding: 0.75rem; }
+    .p-4 { padding: 1rem; }
+    .p-6 { padding: 1.5rem; }
+    .px-2 { padding-left: 0.5rem; padding-right: 0.5rem; }
+    .px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
+    .px-4 { padding-left: 1rem; padding-right: 1rem; }
+    .px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+    .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
+    .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+    .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+    .py-4 { padding-top: 1rem; padding-bottom: 1rem; }
+    .m-2 { margin: 0.5rem; }
+    .mb-1 { margin-bottom: 0.25rem; }
+    .mb-2 { margin-bottom: 0.5rem; }
+    .mb-3 { margin-bottom: 0.75rem; }
+    .mb-4 { margin-bottom: 1rem; }
+    .mb-6 { margin-bottom: 1.5rem; }
+    .mt-1 { margin-top: 0.25rem; }
+    .mt-2 { margin-top: 0.5rem; }
+    .mt-4 { margin-top: 1rem; }
+    .mt-6 { margin-top: 1.5rem; }
+    .mr-1 { margin-right: 0.25rem; }
+    .w-full { width: 100%; }
+    .w-4 { width: 1rem; }
+    .h-4 { height: 1rem; }
+    .min-h-screen { min-height: 100vh; }
+    .rounded { border-radius: 0.25rem; }
+    .rounded-lg { border-radius: 0.5rem; }
+    .rounded-xl { border-radius: 0.75rem; }
+    .text-xs { font-size: 0.75rem; line-height: 1rem; }
+    .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+    .text-base { font-size: 1rem; line-height: 1.5rem; }
+    .text-lg { font-size: 1.125rem; line-height: 1.75rem; }
+    .text-xl { font-size: 1.25rem; line-height: 1.75rem; }
+    .text-2xl { font-size: 1.5rem; line-height: 2rem; }
+    .text-3xl { font-size: 1.875rem; line-height: 2.25rem; }
+    .text-4xl { font-size: 2.25rem; line-height: 2.5rem; }
+    .font-bold { font-weight: 700; }
+    .font-semibold { font-weight: 600; }
+    .text-center { text-align: center; }
+    .inline { display: inline; }
+    .cursor-pointer { cursor: pointer; }
+    .select-none { user-select: none; }
+    .transition-all { transition: all 0.2s; }
+    .opacity-50 { opacity: 0.5; }
+    .opacity-60 { opacity: 0.6; }
+    .opacity-75 { opacity: 0.75; }
+    .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); }
+    .shadow-xl { box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3); }
+    
+    /* Colors */
+    .bg-purple-600 { background-color: #9333ea; }
+    .bg-purple-500 { background-color: #a855f7; }
+    .bg-blue-600 { background-color: #2563eb; }
+    .bg-blue-500 { background-color: #3b82f6; }
+    .bg-green-600 { background-color: #16a34a; }
+    .bg-green-500 { background-color: #22c55e; }
+    .bg-red-600 { background-color: #dc2626; }
+    .bg-red-500 { background-color: #ef4444; }
+    .bg-orange-600 { background-color: #ea580c; }
+    .bg-gray-700 { background-color: #374151; }
+    .bg-gray-800 { background-color: #1f2937; }
+    .bg-yellow-500 { background-color: #eab308; }
+    .bg-indigo-600 { background-color: #4f46e5; }
+    .text-red-400 { color: #f87171; }
+    .text-black-400 { color: #2c2c2c; }
+    .text-yellow-300 { color: #fde047; }
+    .text-yellow-400 { color: #facc15; }
+    .text-green-400 { color: #4ade80; }
+    .text-purple-400 { color: #c084fc; }
+    .text-blue-400 { color: #60a5fa; }
+    .text-gray-400 { color: #9ca3af; }
+    .text-white { color: white; }
+    .border-purple-500 { border-color: #a855f7; }
+    .border-green-500 { border-color: #22c55e; }
+    .border-2 { border-width: 2px; }
+    .border-4 { border-width: 4px; }
+    
+    /* Hover states */
+    .hover\:bg-purple-700:hover { background-color: #7e22ce; }
+    .hover\:bg-blue-700:hover { background-color: #1d4ed8; }
+    .hover\:bg-green-700:hover { background-color: #15803d; }
+    
+    /* Custom button styles */
+    .btn {
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+    .btn:active { transform: scale(0.95); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #9333ea, #7e22ce);
+      color: white;
+    }
+    .btn-primary:hover:not(:disabled) { background: linear-gradient(135deg, #7e22ce, #6b21a8); }
+    
+    .btn-game {
+      background: rgba(107, 114, 128, 0.3);
+      color: rgba(255, 255, 255, 0.7);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+    }
+    .btn-game:hover { background: rgba(107, 114, 128, 0.5); color: white; }
+    .btn-game.active {
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      color: white;
+      border-color: #60a5fa;
+    }
+    
+    select, input {
+      background: #374151;
+      color: white;
+      border: 1px solid #4b5563;
+      padding: 0.5rem;
+      border-radius: 0.375rem;
+      font-size: 1rem;
+    }
+    
+    .card {
+      aspect-ratio: 2.5/3.5;
+      background: white;
+      border-radius: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .card:active { transform: translateY(2px); }
+    .card.held { 
+      transform: translateY(-10px);
+      box-shadow: 0 8px 12px rgba(147, 51, 234, 0.4);
+      border: 3px solid #a855f7;
+    }
+    
+    @media (min-width: 640px) {
+      .sm\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    
+    @media (max-width: 640px) {
+      .text-2xl { font-size: 1.25rem; }
+      .text-3xl { font-size: 1.5rem; }
+      .text-4xl { font-size: 1.75rem; }
+    }
+  </style>
+
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useMemo, useCallback } = React;
+    
+    // Icons
+    const Zap = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>;
+    const Trophy = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>;
+    const Brain = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/></svg>;
+    const PlayCircle = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>;
+
+
+// Card utilities
+const SUITS = ['♠', '♥', '♦', '♣'];
+const RANKS = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A'];
+const RANK_VALUES = { '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, 'T': 10, 'J': 11, 'Q': 12, 'K': 13, 'A': 14 };
+
+const createDeck = () => {
+  const deck = [];
+  for (const suit of SUITS) {
+    for (const rank of RANKS) {
+      deck.push({ rank, suit, id: `${rank}${suit}` });
+    }
+  }
+  return deck;
+};
+
+const shuffleDeck = (deck) => {
+  const newDeck = [...deck];
+  for (let i = newDeck.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newDeck[i], newDeck[j]] = [newDeck[j], newDeck[i]];
+  }
+  return newDeck;
+};
+
+// Pay tables
+const PAY_TABLES = {
+  'Jacks or Better': {
+    '8/5': { 'Royal Flush': 800, 'Straight Flush': 50, 'Four of a Kind': 25, 'Full House': 8, 'Flush': 5, 'Straight': 4, 'Three of a Kind': 3, 'Two Pair': 2, 'Jacks or Better': 1 },
+    '7/5': { 'Royal Flush': 800, 'Straight Flush': 50, 'Four of a Kind': 25, 'Full House': 7, 'Flush': 5, 'Straight': 4, 'Three of a Kind': 3, 'Two Pair': 2, 'Jacks or Better': 1 },
+    '6/5': { 'Royal Flush': 800, 'Straight Flush': 50, 'Four of a Kind': 25, 'Full House': 6, 'Flush': 5, 'Straight': 4, 'Three of a Kind': 3, 'Two Pair': 2, 'Jacks or Better': 1 }
+  },
+  'Bonus Poker': {
+    '8/5': { 'Royal Flush': 800, 'Straight Flush': 50, 'Four Aces': 80, 'Four 2-4': 40, 'Four 5-K': 25, 'Full House': 8, 'Flush': 5, 'Straight': 4, 'Three of a Kind': 3, 'Two Pair': 2, 'Jacks or Better': 1 },
+    '7/5': { 'Royal Flush': 800, 'Straight Flush': 50, 'Four Aces': 80, 'Four 2-4': 40, 'Four 5-K': 25, 'Full House': 7, 'Flush': 5, 'Straight': 4, 'Three of a Kind': 3, 'Two Pair': 2, 'Jacks or Better': 1 },
+    '6/5': { 'Royal Flush': 800, 'Straight Flush': 50, 'Four Aces': 80, 'Four 2-4': 40, 'Four 5-K': 25, 'Full House': 6, 'Flush': 5, 'Straight': 4, 'Three of a Kind': 3, 'Two Pair': 2, 'Jacks or Better': 1 }
+  },
+  'Bonus Poker Deluxe': {
+    '8/5': { 'Royal Flush': 800, 'Straight Flush': 50, 'Four of a Kind': 80, 'Full House': 8, 'Flush': 5, 'Straight': 4, 'Three of a Kind': 3, 'Two Pair': 1, 'Jacks or Better': 1 },
+    '7/5': { 'Royal Flush': 800, 'Straight Flush': 50, 'Four of a Kind': 80, 'Full House': 7, 'Flush': 5, 'Straight': 4, 'Three of a Kind': 3, 'Two Pair': 1, 'Jacks or Better': 1 },
+    '6/5': { 'Royal Flush': 800, 'Straight Flush': 50, 'Four of a Kind': 80, 'Full House': 6, 'Flush': 5, 'Straight': 4, 'Three of a Kind': 3, 'Two Pair': 1, 'Jacks or Better': 1 }
+  },
+  'Double Double Bonus': {
+    '8/5': { 'Royal Flush': 800, 'Straight Flush': 50, 'Four Aces + 2-4': 400, 'Four 2-4 + A-4': 160, 'Four Aces': 160, 'Four 2-4': 80, 'Four 5-K': 50, 'Full House': 8, 'Flush': 5, 'Straight': 4, 'Three of a Kind': 3, 'Two Pair': 1, 'Jacks or Better': 1 },
+    '7/5': { 'Royal Flush': 800, 'Straight Flush': 50, 'Four Aces + 2-4': 400, 'Four 2-4 + A-4': 160, 'Four Aces': 160, 'Four 2-4': 80, 'Four 5-K': 50, 'Full House': 7, 'Flush': 5, 'Straight': 4, 'Three of a Kind': 3, 'Two Pair': 1, 'Jacks or Better': 1 },
+    '6/5': { 'Royal Flush': 800, 'Straight Flush': 50, 'Four Aces + 2-4': 400, 'Four 2-4 + A-4': 160, 'Four Aces': 160, 'Four 2-4': 80, 'Four 5-K': 50, 'Full House': 6, 'Flush': 5, 'Straight': 4, 'Three of a Kind': 3, 'Two Pair': 1, 'Jacks or Better': 1 }
+  },
+  'Triple Double Bonus': {
+    '9/5': { 'Royal Flush': 800, 'Straight Flush': 50, 'Four Aces + 2-3-4': 800, 'Four 2-3-4 + A-2-3-4': 400, 'Four Aces': 160, 'Four 2-3-4': 80, 'Four 5-K': 50, 'Full House': 9, 'Flush': 5, 'Straight': 4, 'Three of a Kind': 2, 'Two Pair': 1, 'Jacks or Better': 1 },
+    '8/5': { 'Royal Flush': 800, 'Straight Flush': 50, 'Four Aces + 2-3-4': 800, 'Four 2-3-4 + A-2-3-4': 400, 'Four Aces': 160, 'Four 2-3-4': 80, 'Four 5-K': 50, 'Full House': 8, 'Flush': 5, 'Straight': 4, 'Three of a Kind': 2, 'Two Pair': 1, 'Jacks or Better': 1 },
+    '7/5': { 'Royal Flush': 800, 'Straight Flush': 50, 'Four Aces + 2-3-4': 800, 'Four 2-3-4 + A-2-3-4': 400, 'Four Aces': 160, 'Four 2-3-4': 80, 'Four 5-K': 50, 'Full House': 7, 'Flush': 5, 'Straight': 4, 'Three of a Kind': 2, 'Two Pair': 1, 'Jacks or Better': 1 }
+  },
+  'Double Bonus': {
+    '9-6-5': { 'Royal Flush': 800, 'Straight Flush': 50, 'Four Aces': 160, 'Four 2-4': 80, 'Four 5-K': 50, 'Full House': 9, 'Flush': 6, 'Straight': 5, 'Three of a Kind': 3, 'Two Pair': 1, 'Jacks or Better': 1 },
+    '9-6-4': { 'Royal Flush': 800, 'Straight Flush': 50, 'Four Aces': 160, 'Four 2-4': 80, 'Four 5-K': 50, 'Full House': 9, 'Flush': 6, 'Straight': 4, 'Three of a Kind': 3, 'Two Pair': 1, 'Jacks or Better': 1 },
+    '9-5-4': { 'Royal Flush': 800, 'Straight Flush': 50, 'Four Aces': 160, 'Four 2-4': 80, 'Four 5-K': 50, 'Full House': 9, 'Flush': 5, 'Straight': 4, 'Three of a Kind': 3, 'Two Pair': 1, 'Jacks or Better': 1 },
+    '8-5-4': { 'Royal Flush': 800, 'Straight Flush': 50, 'Four Aces': 160, 'Four 2-4': 80, 'Four 5-K': 50, 'Full House': 8, 'Flush': 5, 'Straight': 4, 'Three of a Kind': 3, 'Two Pair': 1, 'Jacks or Better': 1 }
+  },
+  'Deuces Wild': {
+    '25/16/13': { 'Natural Royal': 800, 'Four Deuces': 200, 'Wild Royal': 25, 'Five of a Kind': 16, 'Straight Flush': 13, 'Four of a Kind': 4, 'Full House': 3, 'Flush': 2, 'Straight': 2, 'Three of a Kind': 1 },
+    '25/15/10': { 'Natural Royal': 800, 'Four Deuces': 200, 'Wild Royal': 25, 'Five of a Kind': 15, 'Straight Flush': 10, 'Four of a Kind': 4, 'Full House': 3, 'Flush': 2, 'Straight': 2, 'Three of a Kind': 1 },
+    '20/12/10': { 'Natural Royal': 800, 'Four Deuces': 200, 'Wild Royal': 20, 'Five of a Kind': 12, 'Straight Flush': 10, 'Four of a Kind': 4, 'Full House': 3, 'Flush': 2, 'Straight': 2, 'Three of a Kind': 1 },
+    '25/16/10': { 'Natural Royal': 800, 'Four Deuces': 200, 'Wild Royal': 25, 'Five of a Kind': 16, 'Straight Flush': 10, 'Four of a Kind': 4, 'Full House': 3, 'Flush': 2, 'Straight': 2, 'Three of a Kind': 1 },
+    '20/10/8': { 'Natural Royal': 800, 'Four Deuces': 200, 'Wild Royal': 20, 'Five of a Kind': 10, 'Straight Flush': 8, 'Four of a Kind': 4, 'Full House': 3, 'Flush': 2, 'Straight': 2, 'Three of a Kind': 1 }
+  },
+  'Deuces Bonus': {
+    '12/3/2': { 'Natural Royal': 800, 'Four Deuces + Ace': 400, 'Four Deuces': 200, 'Wild Royal': 25, 'Five Aces': 80, 'Five 3-5': 40, 'Five 6-K': 20, 'Straight Flush': 12, 'Four of a Kind': 4, 'Full House': 3, 'Flush': 2, 'Straight': 2, 'Three of a Kind': 1 },
+    '12/3/8': { 'Natural Royal': 800, 'Four Deuces + Ace': 400, 'Four Deuces': 200, 'Wild Royal': 25, 'Five Aces': 80, 'Five 3-5': 40, 'Five 6-K': 20, 'Straight Flush': 12, 'Four of a Kind': 4, 'Full House': 3, 'Flush': 3, 'Straight': 2, 'Three of a Kind': 1 },
+    '12/3/6': { 'Natural Royal': 800, 'Four Deuces + Ace': 400, 'Four Deuces': 200, 'Wild Royal': 25, 'Five Aces': 80, 'Five 3-5': 40, 'Five 6-K': 20, 'Straight Flush': 12, 'Four of a Kind': 4, 'Full House': 3, 'Flush': 2, 'Straight': 2, 'Three of a Kind': 1 },
+    '10/2/2': { 'Natural Royal': 800, 'Four Deuces + Ace': 400, 'Four Deuces': 200, 'Wild Royal': 25, 'Five Aces': 80, 'Five 3-5': 40, 'Five 6-K': 20, 'Straight Flush': 10, 'Four of a Kind': 4, 'Full House': 3, 'Flush': 2, 'Straight': 2, 'Three of a Kind': 1 },
+    '20/12/4': { 'Natural Royal': 800, 'Four Deuces + Ace': 400, 'Four Deuces': 200, 'Wild Royal': 25, 'Five Aces': 80, 'Five 3-5': 40, 'Five 6-K': 20, 'Straight Flush': 20, 'Four of a Kind': 4, 'Full House': 4, 'Flush': 3, 'Straight': 2, 'Three of a Kind': 1 }
+  }
+};
+
+// Ultimate X Multipliers - what you earn for NEXT hand when you hit this result
+// Structured by game type and pay table variant
+const ULTIMATE_X_MULTIPLIERS = {
+  'Jacks or Better': {
+    '8/5': {
+      'Royal Flush': 2,
+      'Straight Flush': 2,
+      'Four of a Kind': 2,
+      'Full House': 12,
+      'Flush': 11,
+      'Straight': 7,
+      'Three of a Kind': 4,
+      'Two Pair': 3,
+      'Jacks or Better': 2
+    },
+    '7/5': {
+      'Royal Flush': 2,
+      'Straight Flush': 2,
+      'Four of a Kind': 2,
+      'Full House': 12,
+      'Flush': 11,
+      'Straight': 7,
+      'Three of a Kind': 4,
+      'Two Pair': 3,
+      'Jacks or Better': 2
+    },
+    '6/5': {
+      'Royal Flush': 2,
+      'Straight Flush': 2,
+      'Four of a Kind': 2,
+      'Full House': 12,
+      'Flush': 11,
+      'Straight': 7,
+      'Three of a Kind': 4,
+      'Two Pair': 3,
+      'Jacks or Better': 2
+    }
+  },
+  'Bonus Poker': {
+    '8/5': {
+      'Royal Flush': 12,
+      'Straight Flush': 11,
+      'Four Aces': 8,
+      'Four 2-4': 8,
+      'Four 5-K': 8,
+      'Full House': 5,
+      'Flush': 4,
+      'Straight': 3,
+      'Three of a Kind': 2,
+      'Two Pair': 2,
+      'Jacks or Better': 2
+    },
+    '7/5': {
+      'Royal Flush': 12,
+      'Straight Flush': 11,
+      'Four Aces': 7,
+      'Four 2-4': 7,
+      'Four 5-K': 7,
+      'Full House': 5,
+      'Flush': 4,
+      'Straight': 3,
+      'Three of a Kind': 2,
+      'Two Pair': 2,
+      'Jacks or Better': 2
+    },
+    '6/5': {
+      'Royal Flush': 2,
+      'Straight Flush': 2,
+      'Four Aces': 2,
+      'Four 2-4': 2,
+      'Four 5-K': 2,
+      'Full House': 12,
+      'Flush': 10,
+      'Straight': 8,
+      'Three of a Kind': 4,
+      'Two Pair': 3,
+      'Jacks or Better': 2
+    }
+  },
+  'Bonus Poker Deluxe': {
+    '8/5': {
+      'Royal Flush': 2,
+      'Straight Flush': 2,
+      'Four of a Kind': 2,
+      'Full House': 12,
+      'Flush': 11,
+      'Straight': 7,
+      'Three of a Kind': 4,
+      'Two Pair': 3,
+      'Jacks or Better': 2
+    },
+    '7/5': {
+      'Royal Flush': 2,
+      'Straight Flush': 2,
+      'Four of a Kind': 2,
+      'Full House': 12,
+      'Flush': 11,
+      'Straight': 7,
+      'Three of a Kind': 4,
+      'Two Pair': 3,
+      'Jacks or Better': 2
+    },
+    '6/5': {
+      'Royal Flush': 2,
+      'Straight Flush': 2,
+      'Four of a Kind': 2,
+      'Full House': 12,
+      'Flush': 11,
+      'Straight': 7,
+      'Three of a Kind': 4,
+      'Two Pair': 3,
+      'Jacks or Better': 2
+    }
+  },
+  'Double Double Bonus': {
+    '8/5': {
+      'Royal Flush': 2,
+      'Straight Flush': 2,
+      'Four Aces + 2-4': 2,
+      'Four 2-4 + A-4': 2,
+      'Four Aces': 2,
+      'Four 2-4': 2,
+      'Four 5-K': 2,
+      'Full House': 12,
+      'Flush': 10,
+      'Straight': 8,
+      'Three of a Kind': 4,
+      'Two Pair': 3,
+      'Jacks or Better': 2
+    },
+    '7/5': {
+      'Royal Flush': 2,
+      'Straight Flush': 2,
+      'Four Aces + 2-4': 2,
+      'Four 2-4 + A-4': 2,
+      'Four Aces': 2,
+      'Four 2-4': 2,
+      'Four 5-K': 2,
+      'Full House': 12,
+      'Flush': 10,
+      'Straight': 8,
+      'Three of a Kind': 4,
+      'Two Pair': 3,
+      'Jacks or Better': 2
+    },
+    '6/5': {
+      'Royal Flush': 2,
+      'Straight Flush': 2,
+      'Four Aces + 2-4': 2,
+      'Four 2-4 + A-4': 2,
+      'Four Aces': 2,
+      'Four 2-4': 2,
+      'Four 5-K': 2,
+      'Full House': 12,
+      'Flush': 10,
+      'Straight': 8,
+      'Three of a Kind': 4,
+      'Two Pair': 3,
+      'Jacks or Better': 2
+    }
+  },
+  'Triple Double Bonus': {
+    '9/5': {
+      'Royal Flush': 2,
+      'Straight Flush': 2,
+      'Four Aces + 2-3-4': 2,
+      'Four 2-3-4 + A-2-3-4': 2,
+      'Four Aces': 2,
+      'Four 2-3-4': 2,
+      'Four 5-K': 2,
+      'Full House': 12,
+      'Flush': 10,
+      'Straight': 8,
+      'Three of a Kind': 4,
+      'Two Pair': 3,
+      'Jacks or Better': 2
+    },
+    '8/5': {
+      'Royal Flush': 2,
+      'Straight Flush': 2,
+      'Four Aces + 2-3-4': 2,
+      'Four 2-3-4 + A-2-3-4': 2,
+      'Four Aces': 2,
+      'Four 2-3-4': 2,
+      'Four 5-K': 2,
+      'Full House': 12,
+      'Flush': 10,
+      'Straight': 8,
+      'Three of a Kind': 4,
+      'Two Pair': 3,
+      'Jacks or Better': 2
+    },
+    '7/5': {
+      'Royal Flush': 2,
+      'Straight Flush': 2,
+      'Four Aces + 2-3-4': 2,
+      'Four 2-3-4 + A-2-3-4': 2,
+      'Four Aces': 2,
+      'Four 2-3-4': 2,
+      'Four 5-K': 2,
+      'Full House': 12,
+      'Flush': 10,
+      'Straight': 8,
+      'Three of a Kind': 4,
+      'Two Pair': 3,
+      'Jacks or Better': 2
+    }
+  },
+  'Double Bonus': {
+    '9-6-5': {
+      'Royal Flush': 2,
+      'Straight Flush': 2,
+      'Four Aces': 2,
+      'Four 2-4': 2,
+      'Four 5-K': 2,
+      'Full House': 12,
+      'Flush': 10,
+      'Straight': 8,
+      'Three of a Kind': 4,
+      'Two Pair': 3,
+      'Jacks or Better': 2
+    },
+    '9-6-4': {
+      'Royal Flush': 2,
+      'Straight Flush': 2,
+      'Four Aces': 2,
+      'Four 2-4': 2,
+      'Four 5-K': 2,
+      'Full House': 12,
+      'Flush': 10,
+      'Straight': 8,
+      'Three of a Kind': 4,
+      'Two Pair': 3,
+      'Jacks or Better': 2
+    },
+    '9-5-4': {
+      'Royal Flush': 2,
+      'Straight Flush': 2,
+      'Four Aces': 2,
+      'Four 2-4': 2,
+      'Four 5-K': 2,
+      'Full House': 12,
+      'Flush': 10,
+      'Straight': 8,
+      'Three of a Kind': 4,
+      'Two Pair': 3,
+      'Jacks or Better': 2
+    },
+    '8-5-4': {
+      'Royal Flush': 2,
+      'Straight Flush': 2,
+      'Four Aces': 2,
+      'Four 2-4': 2,
+      'Four 5-K': 2,
+      'Full House': 12,
+      'Flush': 10,
+      'Straight': 8,
+      'Three of a Kind': 4,
+      'Two Pair': 3,
+      'Jacks or Better': 2
+    }
+  },
+  'Deuces Wild': {
+    '25/16/13': {
+      'Natural Royal': 2,
+      'Four Deuces': 2,
+      'Wild Royal': 2,
+      'Five of a Kind': 2,
+      'Straight Flush': 12,
+      'Four of a Kind': 7,
+      'Full House': 5,
+      'Flush': 5,
+      'Straight': 3,
+      'Three of a Kind': 2
+    },
+    '25/15/10': {
+      'Natural Royal': 2,
+      'Four Deuces': 2,
+      'Wild Royal': 2,
+      'Five of a Kind': 2,
+      'Straight Flush': 12,
+      'Four of a Kind': 7,
+      'Full House': 5,
+      'Flush': 5,
+      'Straight': 3,
+      'Three of a Kind': 2
+    },
+    '20/12/10': {
+      'Natural Royal': 2,
+      'Four Deuces': 2,
+      'Wild Royal': 2,
+      'Five of a Kind': 2,
+      'Straight Flush': 12,
+      'Four of a Kind': 7,
+      'Full House': 5,
+      'Flush': 5,
+      'Straight': 3,
+      'Three of a Kind': 2
+    },
+    '25/16/10': {
+      'Natural Royal': 2,
+      'Four Deuces': 2,
+      'Wild Royal': 2,
+      'Five of a Kind': 2,
+      'Straight Flush': 12,
+      'Four of a Kind': 7,
+      'Full House': 5,
+      'Flush': 5,
+      'Straight': 3,
+      'Three of a Kind': 2
+    },
+    '20/10/8': {
+      'Natural Royal': 2,
+      'Four Deuces': 2,
+      'Wild Royal': 2,
+      'Five of a Kind': 2,
+      'Straight Flush': 12,
+      'Four of a Kind': 7,
+      'Full House': 5,
+      'Flush': 5,
+      'Straight': 3,
+      'Three of a Kind': 2
+    }
+  },
+  'Deuces Bonus': {
+    '12/3/2': {
+      'Natural Royal': 2,
+      'Four Deuces + Ace': 2,
+      'Four Deuces': 2,
+      'Wild Royal': 2,
+      'Five Aces': 2,
+      'Five 3-5': 2,
+      'Five 6-K': 2,
+      'Straight Flush': 12,
+      'Four of a Kind': 7,
+      'Full House': 5,
+      'Flush': 5,
+      'Straight': 3,
+      'Three of a Kind': 2
+    },
+    '12/3/8': {
+      'Natural Royal': 2,
+      'Four Deuces + Ace': 2,
+      'Four Deuces': 2,
+      'Wild Royal': 2,
+      'Five Aces': 2,
+      'Five 3-5': 2,
+      'Five 6-K': 2,
+      'Straight Flush': 12,
+      'Four of a Kind': 7,
+      'Full House': 5,
+      'Flush': 5,
+      'Straight': 3,
+      'Three of a Kind': 2
+    },
+    '12/3/6': {
+      'Natural Royal': 2,
+      'Four Deuces + Ace': 2,
+      'Four Deuces': 2,
+      'Wild Royal': 2,
+      'Five Aces': 2,
+      'Five 3-5': 2,
+      'Five 6-K': 2,
+      'Straight Flush': 12,
+      'Four of a Kind': 7,
+      'Full House': 5,
+      'Flush': 5,
+      'Straight': 3,
+      'Three of a Kind': 2
+    },
+    '10/2/2': {
+      'Natural Royal': 2,
+      'Four Deuces + Ace': 2,
+      'Four Deuces': 2,
+      'Wild Royal': 2,
+      'Five Aces': 2,
+      'Five 3-5': 2,
+      'Five 6-K': 2,
+      'Straight Flush': 12,
+      'Four of a Kind': 7,
+      'Full House': 5,
+      'Flush': 5,
+      'Straight': 3,
+      'Three of a Kind': 2
+    },
+    '20/12/4': {
+      'Natural Royal': 2,
+      'Four Deuces + Ace': 2,
+      'Four Deuces': 2,
+      'Wild Royal': 2,
+      'Five Aces': 2,
+      'Five 3-5': 2,
+      'Five 6-K': 2,
+      'Straight Flush': 12,
+      'Four of a Kind': 7,
+      'Full House': 6,
+      'Flush': 4,
+      'Straight': 3,
+      'Three of a Kind': 2
+    }
+  }
+};
+
+// Hand evaluation
+const evaluateHand = (cards, gameType, payTable) => {
+  if (cards.length !== 5) return { hand: 'Incomplete', payout: 0 };
+  
+  const isDeuces = gameType === 'Deuces Wild' || gameType === 'Deuces Bonus';
+  const deuceCount = isDeuces ? cards.filter(c => c.rank === '2').length : 0;
+  
+  const rankCounts = {};
+  const suitCounts = {};
+  const rankValues = [];
+  
+  cards.forEach(card => {
+    if (isDeuces && card.rank === '2') return;
+    rankCounts[card.rank] = (rankCounts[card.rank] || 0) + 1;
+    suitCounts[card.suit] = (suitCounts[card.suit] || 0) + 1;
+    rankValues.push(RANK_VALUES[card.rank]);
+  });
+  
+  const counts = Object.values(rankCounts).sort((a, b) => b - a);
+  const isFlush = Object.values(suitCounts).some(count => count + deuceCount >= 5);
+  
+  rankValues.sort((a, b) => a - b);
+  let isStraight = false;
+  
+  if (deuceCount === 0) {
+    const uniqueRanks = [...new Set(rankValues)].sort((a, b) => a - b);
+    if (uniqueRanks.length === 5) {
+      // Regular straight: 5 consecutive ranks (e.g., 7-8-9-10-J)
+      if (uniqueRanks[4] - uniqueRanks[0] === 4) isStraight = true;
+      // Wheel (A-2-3-4-5): Check for exact ranks
+      if (uniqueRanks[0] === 2 && uniqueRanks[1] === 3 && uniqueRanks[2] === 4 && uniqueRanks[3] === 5 && uniqueRanks[4] === 14) {
+        isStraight = true;
+      }
+    }
+  } else {
+    const gaps = [];
+    for (let i = 1; i < rankValues.length; i++) {
+      gaps.push(rankValues[i] - rankValues[i-1] - 1);
+    }
+    if (rankValues[0] === 14 && rankValues[rankValues.length - 1] <= 5) {
+      gaps.push(rankValues[0] - rankValues[rankValues.length - 1] - 1 + 13);
+    }
+    if (gaps.reduce((a, b) => a + b, 0) <= deuceCount) isStraight = true;
+  }
+  
+  const maxCount = (counts[0] || 0) + deuceCount;
+  const secondCount = (counts[1] || 0);
+  
+  const hasNaturalRoyal = !isDeuces && isFlush && isStraight && rankValues.includes(14) && rankValues.includes(13);
+  
+  // Wild Royal must be T-J-Q-K-A with deuces (not just any straight flush)
+  let hasWildRoyal = false;
+  if (isDeuces && deuceCount > 0 && isFlush && isStraight) {
+    const royalRanks = [10, 11, 12, 13, 14]; // T, J, Q, K, A
+    const nonDeuceRanks = rankValues.filter(v => v !== 2);
+    // Check if all non-deuce cards are royal ranks
+    const allRoyalRanks = nonDeuceRanks.every(v => royalRanks.includes(v));
+    // Must have enough cards to make T-J-Q-K-A
+    if (allRoyalRanks && nonDeuceRanks.length + deuceCount === 5) {
+      hasWildRoyal = true;
+    }
+  }
+  
+  // Deuces Wild specific hands
+  if (isDeuces) {
+    if (deuceCount === 4) {
+      const kicker = cards.find(c => c.rank !== '2');
+      if (kicker && kicker.rank === 'A') return { hand: 'Four Deuces + Ace', payout: payTable['Four Deuces + Ace'] || 0 };
+      return { hand: 'Four Deuces', payout: payTable['Four Deuces'] || 0 };
+    }
+    
+    if (hasNaturalRoyal && deuceCount === 0) return { hand: 'Natural Royal', payout: payTable['Natural Royal'] || 0 };
+    if (hasWildRoyal) return { hand: 'Wild Royal', payout: payTable['Wild Royal'] || 0 };
+    
+    // Five of a Kind
+    if (maxCount === 5) {
+      const rank = Object.keys(rankCounts).find(r => rankCounts[r] + deuceCount === 5);
+      if (rank === 'A') return { hand: 'Five Aces', payout: payTable['Five Aces'] || 0 };
+      if (['3', '4', '5'].includes(rank)) return { hand: 'Five 3-5', payout: payTable['Five 3-5'] || 0 };
+      return { hand: 'Five 6-K', payout: payTable['Five 6-K'] || 0 };
+    }
+    
+    if (isFlush && isStraight) return { hand: 'Straight Flush', payout: payTable['Straight Flush'] || 0 };
+    if (maxCount === 4) return { hand: 'Four of a Kind', payout: payTable['Four of a Kind'] || 0 };
+    if (maxCount === 3 && secondCount === 2) return { hand: 'Full House', payout: payTable['Full House'] || 0 };
+    if (isFlush) return { hand: 'Flush', payout: payTable['Flush'] || 0 };
+    if (isStraight) return { hand: 'Straight', payout: payTable['Straight'] || 0 };
+    if (maxCount === 3) return { hand: 'Three of a Kind', payout: payTable['Three of a Kind'] || 0 };
+    return { hand: 'Nothing', payout: 0 };
+  }
+  
+  // Standard game hands
+  if (hasNaturalRoyal) return { hand: 'Royal Flush', payout: payTable['Royal Flush'] || 0 };
+  if (isFlush && isStraight) return { hand: 'Straight Flush', payout: payTable['Straight Flush'] || 0 };
+  
+  if (maxCount === 4) {
+    const quadRank = Object.keys(rankCounts).find(r => rankCounts[r] === 4);
+    const kicker = cards.find(c => c.rank !== quadRank);
+    
+    if (gameType === 'Triple Double Bonus') {
+      if (quadRank === 'A' && kicker && ['2', '3', '4'].includes(kicker.rank)) {
+        return { hand: 'Four Aces + 2-3-4', payout: payTable['Four Aces + 2-3-4'] || 0 };
+      }
+      if (['2', '3', '4'].includes(quadRank) && kicker && (kicker.rank === 'A' || ['2', '3', '4'].includes(kicker.rank))) {
+        return { hand: 'Four 2-3-4 + A-2-3-4', payout: payTable['Four 2-3-4 + A-2-3-4'] || 0 };
+      }
+      if (quadRank === 'A') return { hand: 'Four Aces', payout: payTable['Four Aces'] || 0 };
+      if (['2', '3', '4'].includes(quadRank)) return { hand: 'Four 2-3-4', payout: payTable['Four 2-3-4'] || 0 };
+      return { hand: 'Four 5-K', payout: payTable['Four 5-K'] || 0 };
+    }
+    
+    if (gameType === 'Double Double Bonus') {
+      if (quadRank === 'A' && kicker && ['2', '3', '4'].includes(kicker.rank)) {
+        return { hand: 'Four Aces + 2-4', payout: payTable['Four Aces + 2-4'] || 0 };
+      }
+      if (['2', '3', '4'].includes(quadRank) && kicker && (kicker.rank === 'A' || ['2', '3', '4'].includes(kicker.rank))) {
+        return { hand: 'Four 2-4 + A-4', payout: payTable['Four 2-4 + A-4'] || 0 };
+      }
+      if (quadRank === 'A') return { hand: 'Four Aces', payout: payTable['Four Aces'] || 0 };
+      if (['2', '3', '4'].includes(quadRank)) return { hand: 'Four 2-4', payout: payTable['Four 2-4'] || 0 };
+      return { hand: 'Four 5-K', payout: payTable['Four 5-K'] || 0 };
+    }
+    
+    if (gameType === 'Bonus Poker' || gameType === 'Double Bonus') {
+      if (quadRank === 'A') return { hand: 'Four Aces', payout: payTable['Four Aces'] || 0 };
+      if (['2', '3', '4'].includes(quadRank)) return { hand: 'Four 2-4', payout: payTable['Four 2-4'] || 0 };
+      return { hand: 'Four 5-K', payout: payTable['Four 5-K'] || 0 };
+    }
+    
+    return { hand: 'Four of a Kind', payout: payTable['Four of a Kind'] || 0 };
+  }
+  
+  if (maxCount === 3 && secondCount === 2) return { hand: 'Full House', payout: payTable['Full House'] || 0 };
+  if (isFlush) return { hand: 'Flush', payout: payTable['Flush'] || 0 };
+  if (isStraight) return { hand: 'Straight', payout: payTable['Straight'] || 0 };
+  if (maxCount === 3) return { hand: 'Three of a Kind', payout: payTable['Three of a Kind'] || 0 };
+  if (maxCount === 2 && secondCount === 2) return { hand: 'Two Pair', payout: payTable['Two Pair'] || 0 };
+  
+  const pairRank = Object.keys(rankCounts).find(r => rankCounts[r] === 2);
+  if (pairRank && ['J', 'Q', 'K', 'A'].includes(pairRank)) {
+    return { hand: 'Jacks or Better', payout: payTable['Jacks or Better'] || 1 };
+  }
+  
+  return { hand: 'Nothing', payout: 0 };
+};
+
+// Game-specific strategy rules for common situations
+const getStrategyHint = (cards, gameType) => {
+  const suits = cards.map(c => c.suit);
+  const ranks = cards.map(c => c.rank);
+  const suitCounts = {};
+  suits.forEach(s => suitCounts[s] = (suitCounts[s] || 0) + 1);
+  
+  const isDeuces = gameType === 'Deuces Wild' || gameType === 'Deuces Bonus';
+  const deuceCount = isDeuces ? cards.filter(c => c.rank === '2').length : 0;
+  
+  // Check for pairs, trips, etc
+  const rankCounts = {};
+  ranks.forEach(r => {
+    if (isDeuces && r === '2') return; // Don't count deuces in rank counts for wild games
+    rankCounts[r] = (rankCounts[r] || 0) + 1;
+  });
+  
+  const counts = Object.values(rankCounts).sort((a, b) => b - a);
+  const maxCount = (counts[0] || 0) + deuceCount;
+  
+  // High cards (for Jacks or Better games)
+  const highCards = ranks.filter(r => ['J', 'Q', 'K', 'A'].includes(r));
+  
+  // Find suited cards
+  let maxSuitCount = 0;
+  let maxSuit = null;
+  Object.entries(suitCounts).forEach(([suit, count]) => {
+    if (count > maxSuitCount) {
+      maxSuitCount = count;
+      maxSuit = suit;
+    }
+  });
+  
+  // DEUCES WILD / DEUCES BONUS STRATEGY
+  if (isDeuces) {
+    // With deuces, different strategy
+    if (deuceCount >= 1) {
+      // Hold all deuces plus any made hand
+      return null; // Let Monte Carlo handle deuce hands
+    }
+    
+    // No deuces - Deuces Wild strategy priorities:
+    // 1. Made hands (3oak+, straight, flush)
+    // 2. 4-card royal flush
+    // 3. 4-card straight flush
+    // 4. 3-card royal flush
+    // 5. Pair
+    // 6. 4-card flush
+    // 7. 4-card straight (open-ended)
+    // 8. 3-card straight flush
+    // 9. 2-card royal flush (high priority)
+    // 10. 3-card flush
+    // 11. 2-card straight flush (suited connectors)
+    // 12. Discard all
+    
+    // Check for pairs (worth holding in Deuces games)
+    if (maxCount >= 2) {
+      return null; // Let Monte Carlo evaluate pairs
+    }
+    
+    // 4-card flush - strong draw
+    if (maxSuitCount >= 4) {
+      return null; // Let Monte Carlo evaluate
+    }
+    
+    // Check for suited connectors and straight flush draws
+    // For 2+ suited cards, check if they're connectors or have straight potential
+    if (maxSuitCount >= 2) {
+      const suitedCards = cards.filter(c => c.suit === maxSuit);
+      const suitedRanks = suitedCards.map(c => RANK_VALUES[c.rank]).sort((a, b) => a - b);
+      
+      // Check for suited connectors or near connectors (gap of 1-2)
+      if (suitedCards.length === 2) {
+        const gap = suitedRanks[1] - suitedRanks[0];
+        if (gap <= 4) {
+          // Suited cards with straight potential - let Monte Carlo evaluate
+          return null;
+        }
+      }
+      
+      // 3+ suited cards - always worth considering
+      if (maxSuitCount >= 3) {
+        return null; // Let Monte Carlo evaluate
+      }
+    }
+    
+    // No deuces, no pairs, no suited draws
+    // In Deuces Wild with nothing, discard all
+    return null; // Actually, let Monte Carlo decide - strategy is complex
+  }
+  
+  // JACKS OR BETTER FAMILY STRATEGY (JoB, Bonus, DDB, DB, BPD, TDB)
+  
+  // Made hands - always hold
+  if (maxCount >= 3) return null; // Trips or better - let exact evaluation handle
+  
+  // Pairs
+  const pairRank = Object.keys(rankCounts).find(r => rankCounts[r] === 2);
+  if (pairRank) {
+    if (['J', 'Q', 'K', 'A'].includes(pairRank)) {
+      // High pair - always hold
+      return null; // Let Monte Carlo confirm
+    } else {
+      // Low pair - hold in most Jacks or Better games
+      return null; // Let Monte Carlo evaluate vs draws
+    }
+  }
+  
+  // 4-card flush (4 suited)
+  if (maxSuitCount === 4) {
+    const suitedIndices = cards.map((c, i) => c.suit === maxSuit ? i : -1).filter(i => i >= 0);
+    return { heldIndices: suitedIndices, hint: '4-card flush' };
+  }
+  
+  // 4-card straight (open-ended or inside)
+  // Complex to detect perfectly, let Monte Carlo handle
+  
+  // 3-card flush
+  if (maxSuitCount === 3) {
+    const suitedIndices = cards.map((c, i) => c.suit === maxSuit ? i : -1).filter(i => i >= 0);
+    // In Jacks or Better, 3-card flush is sometimes held
+    // Let Monte Carlo decide if it's better than other options
+    return null;
+  }
+  
+  // High cards (J, Q, K, A)
+  if (highCards.length >= 2) {
+    // 2+ high cards - usually hold them
+    const highCardIndices = cards.map((c, i) => ['J', 'Q', 'K', 'A'].includes(c.rank) ? i : -1).filter(i => i >= 0);
+    return null; // Let Monte Carlo compare high cards vs other draws
+  }
+  
+  if (highCards.length === 1) {
+    // Single high card
+    const highCardIndex = cards.findIndex(c => ['J', 'Q', 'K', 'A'].includes(c.rank));
+    return null; // Let Monte Carlo decide
+  }
+  
+  // No pairs, no high cards, no strong draws
+  // Usually discard all in Jacks or Better
+  return null; // Let Monte Carlo confirm
+};
+
+// Strategy analyzer using lookup tables with multiplier awareness
+const analyzeStrategy = (cards, gameType, payTable, playMode = 1) => {
+  // Get hand characteristics for strategy lookup
+  const suits = cards.map(c => c.suit);
+  const ranks = cards.map(c => c.rank);
+  
+  const isDeuces = gameType === 'Deuces Wild' || gameType === 'Deuces Bonus';
+  const deuceCount = isDeuces ? cards.filter(c => c.rank === '2').length : 0;
+  
+  // Suit counts (excluding deuces for wild games - they're wild for any suit)
+  const suitCounts = {};
+  suits.forEach((s, i) => {
+    if (isDeuces && ranks[i] === '2') return; // Don't count deuce suits
+    suitCounts[s] = (suitCounts[s] || 0) + 1;
+  });
+  
+  // Rank counts (excluding deuces for wild games)
+  const rankCounts = {};
+  ranks.forEach(r => {
+    if (isDeuces && r === '2') return;
+    rankCounts[r] = (rankCounts[r] || 0) + 1;
+  });
+  
+  const counts = Object.values(rankCounts).sort((a, b) => b - a);
+  const maxCount = (counts[0] || 0) + deuceCount;
+  const secondCount = counts[1] || 0;
+  
+  // Get multiplier values from ULTIMATE_X_MULTIPLIERS
+  const multipliers = ULTIMATE_X_MULTIPLIERS[gameType]?.[Object.keys(PAY_TABLES[gameType])[0]] || {};
+  
+  // Multiplier boost for multi-play: hands that earn good multipliers are more valuable
+  const isMultiPlay = playMode > 1;
+  const multiplierBoost = isMultiPlay ? 0.15 : 0; // Bonus EV for hands that generate multipliers
+  
+  // High cards
+  const highCards = cards.filter(c => ['J', 'Q', 'K', 'A'].includes(c.rank));
+  const highCardIndices = cards.map((c, i) => ['J', 'Q', 'K', 'A'].includes(c.rank) ? i : -1).filter(i => i >= 0);
+  
+  // Find suited cards
+  let maxSuitCount = 0;
+  let maxSuit = null;
+  Object.entries(suitCounts).forEach(([suit, count]) => {
+    if (count > maxSuitCount) {
+      maxSuitCount = count;
+      maxSuit = suit;
+    }
+  });
+  
+  const suitedIndices = cards.map((c, i) => c.suit === maxSuit ? i : -1).filter(i => i >= 0);
+  
+  // Check for pairs, trips, etc
+  const pairRanks = Object.keys(rankCounts).filter(r => rankCounts[r] === 2);
+  const tripRank = Object.keys(rankCounts).find(r => rankCounts[r] === 3);
+  const quadRank = Object.keys(rankCounts).find(r => rankCounts[r] === 4);
+  
+  // Get rank values for straight detection
+  const rankValues = ranks.map(r => RANK_VALUES[r]).sort((a, b) => a - b);
+  
+  // Detect straight (works for both deuces and non-deuces games)
+  let isStraight = false;
+  if (isDeuces) {
+    // For deuces games, check if we can make a straight with wilds
+    const nonDeuceValues = rankValues.filter(v => v !== 2);
+    const uniqueNonDeuceValues = [...new Set(nonDeuceValues)]; // Remove duplicates!
+    
+    if (uniqueNonDeuceValues.length + deuceCount >= 5) {
+      // Check if gaps can be filled by deuces
+      const gaps = [];
+      for (let i = 1; i < uniqueNonDeuceValues.length; i++) {
+        gaps.push(uniqueNonDeuceValues[i] - uniqueNonDeuceValues[i-1] - 1);
+      }
+      // Check for wheel (A-2-3-4-5)
+      if (uniqueNonDeuceValues[0] === 14 || uniqueNonDeuceValues[uniqueNonDeuceValues.length - 1] === 14) {
+        const hasLowCards = uniqueNonDeuceValues.some(v => v <= 5);
+        if (hasLowCards) {
+          const totalGaps = gaps.reduce((a, b) => a + b, 0);
+          isStraight = totalGaps <= deuceCount;
+        }
+      }
+      // Regular straight
+      if (!isStraight && uniqueNonDeuceValues.length >= 1) {
+        const span = uniqueNonDeuceValues[uniqueNonDeuceValues.length - 1] - uniqueNonDeuceValues[0];
+        const totalGaps = gaps.reduce((a, b) => a + b, 0);
+        // Need exactly 5 cards total (unique non-deuces + deuces) and span <= 4
+        isStraight = (span <= 4 && totalGaps <= deuceCount && uniqueNonDeuceValues.length + deuceCount === 5);
+      }
+    }
+  } else {
+    // Non-deuces games
+    const isWheel = rankValues[0] === 2 && rankValues[4] === 14 && rankValues[1] === 3 && rankValues[2] === 4 && rankValues[3] === 5;
+    isStraight = isWheel || (rankValues[4] - rankValues[0] === 4 && new Set(rankValues).size === 5);
+  }
+  
+  // Detect flush (including deuces which count toward flush)
+  const isFlush = maxSuitCount >= 5 || (isDeuces && Object.values(suitCounts).some(count => count + deuceCount >= 5));
+  
+  // JACKS OR BETTER FAMILY STRATEGY
+  if (!isDeuces) {
+    // 1. Made hands - always hold all
+    if (maxCount >= 4) return { heldIndices: [0,1,2,3,4], ev: 25 }; // Quads+
+    if (maxCount === 3 && secondCount === 2) return { heldIndices: [0,1,2,3,4], ev: 9 }; // Full house
+    
+    // Four-card royal flush (BEFORE flush check - higher EV!)
+    if (maxSuitCount >= 4) {
+      const suitedRanks = cards.filter(c => c.suit === maxSuit).map(c => c.rank);
+      const royalRanks = ['T', 'J', 'Q', 'K', 'A'];
+      const royalCount = suitedRanks.filter(r => royalRanks.includes(r)).length;
+      if (royalCount === 4) {
+        const royalIndices = cards.map((c, i) => c.suit === maxSuit && royalRanks.includes(c.rank) ? i : -1).filter(i => i >= 0);
+        return { heldIndices: royalIndices, ev: 2.3 };
+      }
+    }
+    
+    // Check for flush
+    if (isFlush) return { heldIndices: [0,1,2,3,4], ev: 6 };
+    
+    // Check for straight
+    if (isStraight) return { heldIndices: [0,1,2,3,4], ev: 4 };
+    
+    if (maxCount === 3) {
+      // Hold only the 3 cards that make trips (not kickers)
+      const tripRank = Object.keys(rankCounts).find(r => rankCounts[r] === 3);
+      const tripIndices = cards
+        .map((c, i) => c.rank === tripRank ? i : -1)
+        .filter(i => i >= 0);
+      return { heldIndices: tripIndices, ev: 3 }; // Trips - hold 3 cards
+    }
+    if (pairRanks.length === 2) {
+      console.log('TWO PAIR DETECTED');
+      console.log('Cards:', cards.map(c => c.rank + c.suit));
+      console.log('pairRanks:', pairRanks);
+      
+      // Hold only the 4 cards that make the two pairs (not the kicker)
+      const twoPairIndices = cards
+        .map((c, i) => pairRanks.includes(c.rank) ? i : -1)
+        .filter(i => i >= 0);
+      
+      console.log('Returning indices:', twoPairIndices);
+      return { heldIndices: twoPairIndices, ev: 2 }; // Two pair - hold 4 cards
+    }
+    
+    // 3. High pair (J, Q, K, A) - HIGHER PRIORITY IN MULTI-PLAY
+    const highPairRank = pairRanks.find(r => ['J', 'Q', 'K', 'A'].includes(r));
+    if (highPairRank) {
+      const pairIndices = cards.map((c, i) => c.rank === highPairRank ? i : -1).filter(i => i >= 0);
+      const mult = multipliers['Jacks or Better'] || 2;
+      const multiplayValue = isMultiPlay ? (mult - 1) * multiplierBoost * playMode : 0;
+      return { heldIndices: pairIndices, ev: 0.82 + multiplayValue };
+    }
+    
+    // 4. Four-card flush
+    if (maxSuitCount === 4) {
+      return { heldIndices: suitedIndices, ev: 0.6 };
+    }
+    
+    // 5. Four-card straight (open-ended or one-gap with high cards)
+    // Must have 4 unique ranks to make a straight
+    const uniqueRankValues = [...new Set(rankValues)].sort((a, b) => a - b);
+    if (uniqueRankValues.length >= 4) {
+      // Check for 4 unique cards that can make a straight
+      for (let i = 0; i <= uniqueRankValues.length - 4; i++) {
+        const span = uniqueRankValues[i+3] - uniqueRankValues[i];
+        const targetValues = [uniqueRankValues[i], uniqueRankValues[i+1], uniqueRankValues[i+2], uniqueRankValues[i+3]];
+        
+        // Open-ended straight (span = 3): ALWAYS good
+        if (span === 3) {
+          const straightIndices = cards.map((c, idx) => targetValues.includes(RANK_VALUES[c.rank]) ? idx : -1).filter(i => i >= 0).slice(0, 4);
+          if (straightIndices.length === 4) {
+            return { heldIndices: straightIndices, ev: 0.53 };
+          }
+        }
+        
+        // One-gap straight (span = 4): ONLY if it contains high cards (J, Q, K, A)
+        if (span === 4) {
+          const straightCards = cards.filter(c => targetValues.includes(RANK_VALUES[c.rank]));
+          const hasHighCard = straightCards.some(c => ['J', 'Q', 'K', 'A'].includes(c.rank));
+          
+          if (hasHighCard) {
+            const straightIndices = cards.map((c, idx) => targetValues.includes(RANK_VALUES[c.rank]) ? idx : -1).filter(i => i >= 0).slice(0, 4);
+            if (straightIndices.length === 4) {
+              return { heldIndices: straightIndices, ev: 0.53 };
+            }
+          }
+        }
+      }
+    }
+    
+    // 6. Three-card royal flush
+    if (maxSuitCount >= 3) {
+      const suitedRanks = cards.filter(c => c.suit === maxSuit).map(c => c.rank);
+      const royalRanks = ['T', 'J', 'Q', 'K', 'A'];
+      const royalCount = suitedRanks.filter(r => royalRanks.includes(r)).length;
+      if (royalCount >= 3) {
+        const royalIndices = cards.map((c, i) => c.suit === maxSuit && royalRanks.includes(c.rank) ? i : -1).filter(i => i >= 0).slice(0, 3);
+        return { heldIndices: royalIndices, ev: 0.52 };
+      }
+    }
+    
+    // 7. Low pair (2-10) - MORE VALUABLE IN MULTI-PLAY (guaranteed win on all hands)
+    if (pairRanks.length > 0) {
+      const lowPairRank = pairRanks[0];
+      const pairIndices = cards.map((c, i) => c.rank === lowPairRank ? i : -1).filter(i => i >= 0);
+      // In multi-play, low pairs become more attractive (guaranteed payout on all hands)
+      const multiplayBonus = isMultiPlay ? 0.15 : 0;
+      return { heldIndices: pairIndices, ev: 0.50 + multiplayBonus };
+    }
+    
+    // 8. High cards (prioritize connected cards for straight potential)
+    if (highCards.length >= 3) {
+      // Check if we have 3+ high cards
+      const highValues = highCards.map(c => RANK_VALUES[c.rank]).sort((a, b) => a - b);
+      
+      // Check for 3 connected high cards (e.g., J-Q-K)
+      // Connected means max span of 2 (e.g., J=11, K=13, span=2)
+      if (highValues.length >= 3) {
+        const span = highValues[highValues.length - 1] - highValues[0];
+        if (span <= 4) {
+          // Hold all connected high cards (up to 3)
+          return { heldIndices: highCardIndices.slice(0, 3), ev: 0.51 };
+        }
+      }
+      
+      // If not connected, check for suited high cards first
+      const suitedHighCards = highCards.filter(c => c.suit === highCards[0].suit);
+      if (suitedHighCards.length >= 2) {
+        const indices = cards.map((c, i) => suitedHighCards.slice(0, 2).some(hc => hc.rank === c.rank && hc.suit === c.suit) ? i : -1).filter(i => i >= 0);
+        return { heldIndices: indices, ev: 0.50 };
+      }
+      // Otherwise any two high cards
+      return { heldIndices: highCardIndices.slice(0, 2), ev: 0.46 };
+    }
+    
+    if (highCards.length === 2) {
+      // Check for suited high cards first
+      const suitedHighCards = highCards.filter(c => c.suit === highCards[0].suit);
+      if (suitedHighCards.length >= 2) {
+        const indices = cards.map((c, i) => suitedHighCards.slice(0, 2).some(hc => hc.rank === c.rank && hc.suit === c.suit) ? i : -1).filter(i => i >= 0);
+        return { heldIndices: indices, ev: 0.50 };
+      }
+      // Otherwise any two high cards
+      return { heldIndices: highCardIndices.slice(0, 2), ev: 0.46 };
+    }
+    
+    // 9. Three-card straight flush (connected suited cards like Q-T-9 suited)
+    if (maxSuitCount >= 3) {
+      const suitedCards = cards.filter(c => c.suit === maxSuit);
+      const suitedValues = suitedCards.map(c => RANK_VALUES[c.rank]).sort((a, b) => a - b);
+      
+      // Check all combinations of 3 suited cards
+      for (let i = 0; i < suitedValues.length - 2; i++) {
+        const span = suitedValues[i + 2] - suitedValues[i];
+        // 3-card SF: max gap of 4 (can fill with 2 cards)
+        // Examples: Q-T-9 (span=3), J-9-8 (span=3), A-K-J (span=3)
+        if (span <= 4) {
+          // Found a 3-card straight flush possibility
+          const targetValues = [suitedValues[i], suitedValues[i+1], suitedValues[i+2]];
+          const sfIndices = cards.map((c, idx) => 
+            c.suit === maxSuit && targetValues.includes(RANK_VALUES[c.rank]) ? idx : -1
+          ).filter(i => i >= 0);
+          return { heldIndices: sfIndices, ev: 0.48 };
+        }
+      }
+    }
+    
+    // 10. One high card
+    if (highCards.length === 1) {
+      return { heldIndices: [highCardIndices[0]], ev: 0.36 };
+    }
+    
+    // 11. Nothing - discard all
+    return { heldIndices: [], ev: 0.41 };
+  }
+  
+  
+  // DEUCES WILD STRATEGY - COMPLETE REWRITE
+  else {
+    const deuceIndices = cards.map((c, i) => c.rank === '2' ? i : -1).filter(i => i >= 0);
+    
+    // ========== WITH 4 DEUCES ==========
+    if (deuceCount === 4) {
+      return { heldIndices: [0,1,2,3,4], ev: 200 }; // Can't improve
+    }
+    
+    // ========== WITH 3 DEUCES ==========
+    if (deuceCount === 3) {
+      // Wild Royal
+      const nonDeuces = cards.filter(c => c.rank !== '2');
+      const royalRanks = ['T', 'J', 'Q', 'K', 'A'];
+      if (nonDeuces.length === 2 && nonDeuces.every(c => royalRanks.includes(c.rank)) && 
+          nonDeuces[0].suit === nonDeuces[1].suit) {
+        return { heldIndices: [0,1,2,3,4], ev: 25 };
+      }
+      
+      // Five of a Kind
+      if (maxCount === 5) return { heldIndices: [0,1,2,3,4], ev: 15 };
+      
+      // Hold 3 deuces only (drawing 2 is better than any made hand)
+      return { heldIndices: deuceIndices, ev: 7.0 };
+    }
+    
+    // ========== WITH 2 DEUCES ==========
+    if (deuceCount === 2) {
+      // Wild Royal
+      if (isFlush && isStraight && rankValues.includes(14)) {
+        return { heldIndices: [0,1,2,3,4], ev: 25 };
+      }
+      
+      // Five of a Kind
+      if (maxCount === 5) return { heldIndices: [0,1,2,3,4], ev: 15 };
+      
+      // Straight Flush
+      if (isFlush && isStraight) return { heldIndices: [0,1,2,3,4], ev: 13 };
+      
+      // Four of a Kind (2 deuces + pair)
+      // Hold just the 4 cards to draw for Five of a Kind!
+      if (maxCount === 4) {
+        // Find the pair rank
+        const pairRank = Object.keys(rankCounts).find(r => rankCounts[r] === 2);
+        if (pairRank) {
+          const indices = [
+            ...deuceIndices,
+            ...cards.map((c, i) => c.rank === pairRank ? i : -1).filter(i => i >= 0)
+          ];
+          return { heldIndices: indices, ev: 5.4 }; // Draw for 5K
+        }
+        // Fallback (shouldn't happen)
+        return { heldIndices: [0,1,2,3,4], ev: 5 };
+      }
+      
+      // Four-card Royal Flush (2 deuces + 2 royals suited)
+      if (maxSuitCount >= 2) {
+        const suitedNonDeuces = cards.filter(c => c.suit === maxSuit && c.rank !== '2');
+        const royalRanks = ['T', 'J', 'Q', 'K', 'A'];
+        const royalCount = suitedNonDeuces.filter(c => royalRanks.includes(c.rank)).length;
+        
+        if (royalCount === 2) {
+          const indices = [
+            ...deuceIndices,
+            ...cards.map((c, i) => c.suit === maxSuit && royalRanks.includes(c.rank) ? i : -1).filter(i => i >= 0)
+          ].slice(0, 4);
+          return { heldIndices: indices, ev: 5.5 };
+        }
+      }
+      
+      // Four to SF with 0-2 gaps (2 deuces + 2 suited)
+      if (maxSuitCount >= 2) {
+        const suitedNonDeuces = cards.filter(c => c.suit === maxSuit && c.rank !== '2');
+        if (suitedNonDeuces.length >= 2) {
+          const suitedValues = suitedNonDeuces.map(c => RANK_VALUES[c.rank]).sort((a, b) => a - b);
+          const span = suitedValues[suitedValues.length - 1] - suitedValues[0];
+          
+          if (span <= 4) { // 0-2 gaps (2 deuces can fill)
+            const indices = [
+              ...deuceIndices,
+              ...cards.map((c, i) => c.suit === maxSuit && c.rank !== '2' ? i : -1).filter(i => i >= 0)
+            ].slice(0, 4);
+            return { heldIndices: indices, ev: 4.5 };
+          }
+        }
+      }
+      
+      // Everything else: hold 2 deuces only
+      return { heldIndices: deuceIndices, ev: 3.5 };
+    }
+    
+    // ========== WITH 1 DEUCE ==========
+    if (deuceCount === 1) {
+      // Wild Royal
+      if (isFlush && isStraight && rankValues.includes(14)) {
+        return { heldIndices: [0,1,2,3,4], ev: 25 };
+      }
+      
+      // Five of a Kind
+      if (maxCount === 5) return { heldIndices: [0,1,2,3,4], ev: 15 };
+      
+      // Straight Flush
+      if (isFlush && isStraight) return { heldIndices: [0,1,2,3,4], ev: 13 };
+      
+      // Four of a Kind
+      if (maxCount === 4) return { heldIndices: [0,1,2,3,4], ev: 5 };
+      
+      // Full House
+      if (maxCount === 3 && secondCount === 2) return { heldIndices: [0,1,2,3,4], ev: 3 };
+      
+      // Four to Royal Flush (deuce + 3 royals suited)
+      if (maxSuitCount >= 3) {
+        const suitedNonDeuces = cards.filter(c => c.suit === maxSuit && c.rank !== '2');
+        const royalRanks = ['T', 'J', 'Q', 'K', 'A'];
+        const royalCount = suitedNonDeuces.filter(c => royalRanks.includes(c.rank)).length;
+        
+        if (royalCount === 3) {
+          const indices = [
+            ...deuceIndices,
+            ...cards.map((c, i) => c.suit === maxSuit && royalRanks.includes(c.rank) ? i : -1).filter(i => i >= 0)
+          ].slice(0, 4);
+          return { heldIndices: indices, ev: 3.5 };
+        }
+      }
+      
+      // Flush
+      if (isFlush) return { heldIndices: [0,1,2,3,4], ev: 3 };
+      
+      // Three of a Kind (deuce + pair) - BEFORE straight check!
+      // Holding deuce + pair (EV 2.2) is better than made straight (EV 2.0)
+      if (maxCount === 3) {
+        const pairRank = Object.keys(rankCounts).find(r => rankCounts[r] === 2);
+        if (pairRank) {
+          const indices = [
+            ...deuceIndices,
+            ...cards.map((c, i) => c.rank === pairRank ? i : -1).filter(i => i >= 0)
+          ];
+          return { heldIndices: indices, ev: 2.2 };
+        }
+      }
+      
+      // Straight
+      if (isStraight) return { heldIndices: [0,1,2,3,4], ev: 2 };
+      
+      // Four to Straight Flush (deuce + 3 suited with straight potential)
+      if (maxSuitCount >= 3) {
+        const suitedNonDeuces = cards.filter(c => c.suit === maxSuit && c.rank !== '2');
+        if (suitedNonDeuces.length >= 3) {
+          const suitedValues = suitedNonDeuces.map(c => RANK_VALUES[c.rank]).sort((a, b) => a - b);
+          const span = suitedValues[suitedValues.length - 1] - suitedValues[0];
+          
+          if (span <= 4) { // 0-1 gaps (1 deuce can fill)
+            const indices = [
+              ...deuceIndices,
+              ...cards.map((c, i) => c.suit === maxSuit && c.rank !== '2' ? i : -1).filter(i => i >= 0)
+            ].slice(0, 4);
+            return { heldIndices: indices, ev: 2.5 };
+          }
+        }
+      }
+      
+      // Three to Royal Flush (deuce + 2 royals suited)
+      if (maxSuitCount >= 2) {
+        const suitedNonDeuces = cards.filter(c => c.suit === maxSuit && c.rank !== '2');
+        const royalRanks = ['T', 'J', 'Q', 'K', 'A'];
+        const royalCount = suitedNonDeuces.filter(c => royalRanks.includes(c.rank)).length;
+        
+        if (royalCount === 2) {
+          const indices = [
+            ...deuceIndices,
+            ...cards.map((c, i) => c.suit === maxSuit && royalRanks.includes(c.rank) ? i : -1).filter(i => i >= 0)
+          ].slice(0, 3);
+          return { heldIndices: indices, ev: 2.0 };
+        }
+      }
+      
+      // Three to SF with 0 gaps (deuce + 2 suited consecutive)
+      if (maxSuitCount >= 2) {
+        const suitedNonDeuces = cards.filter(c => c.suit === maxSuit && c.rank !== '2');
+        if (suitedNonDeuces.length >= 2) {
+          const suitedValues = suitedNonDeuces.map(c => RANK_VALUES[c.rank]).sort((a, b) => a - b);
+          const span = suitedValues[suitedValues.length - 1] - suitedValues[0];
+          
+          if (span === 1) { // Consecutive (0 gaps)
+            const indices = [
+              ...deuceIndices,
+              ...cards.map((c, i) => c.suit === maxSuit && c.rank !== '2' ? i : -1).filter(i => i >= 0)
+            ].slice(0, 3);
+            return { heldIndices: indices, ev: 1.9 };
+          }
+        }
+      }
+      
+      // Pair (deuce + pair = trips potential)
+      if (pairRanks.length > 0) {
+        const indices = [
+          ...deuceIndices,
+          ...cards.map((c, i) => c.rank === pairRanks[0] ? i : -1).filter(i => i >= 0)
+        ];
+        return { heldIndices: indices, ev: 1.85 };
+      }
+      
+      // Three to SF with 1 gap (deuce + 2 suited)
+      if (maxSuitCount >= 2) {
+        const suitedNonDeuces = cards.filter(c => c.suit === maxSuit && c.rank !== '2');
+        if (suitedNonDeuces.length >= 2) {
+          const suitedValues = suitedNonDeuces.map(c => RANK_VALUES[c.rank]).sort((a, b) => a - b);
+          const span = suitedValues[suitedValues.length - 1] - suitedValues[0];
+          
+          if (span <= 4) { // 1-3 gaps
+            const indices = [
+              ...deuceIndices,
+              ...cards.map((c, i) => c.suit === maxSuit && c.rank !== '2' ? i : -1).filter(i => i >= 0)
+            ].slice(0, 3);
+            return { heldIndices: indices, ev: 1.8 };
+          }
+        }
+      }
+      
+      // Four to Flush (deuce + 3 suited)
+      if (maxSuitCount >= 3) {
+        const indices = [
+          ...deuceIndices,
+          ...cards.map((c, i) => c.suit === maxSuit && c.rank !== '2' ? i : -1).filter(i => i >= 0)
+        ].slice(0, 4);
+        return { heldIndices: indices, ev: 1.7 };
+      }
+      
+      // Hold deuce only
+      return { heldIndices: deuceIndices, ev: 1.5 };
+    }
+    
+    // ========== WITH 0 DEUCES ==========
+    // Royal Flush, Straight Flush, Four of a Kind, Full House
+    if (maxCount >= 4) return { heldIndices: [0,1,2,3,4], ev: 25 };
+    if (maxCount === 3 && secondCount === 2) return { heldIndices: [0,1,2,3,4], ev: 9 };
+    
+    // Four to Royal Flush
+    if (maxSuitCount >= 4) {
+      const suitedRanks = cards.filter(c => c.suit === maxSuit).map(c => c.rank);
+      const royalRanks = ['T', 'J', 'Q', 'K', 'A'];
+      const royalCount = suitedRanks.filter(r => royalRanks.includes(r)).length;
+      if (royalCount === 4) {
+        const royalIndices = cards.map((c, i) => c.suit === maxSuit && royalRanks.includes(c.rank) ? i : -1).filter(i => i >= 0);
+        return { heldIndices: royalIndices, ev: 2.8 };
+      }
+    }
+    
+    // Flush, Straight, Three of a Kind
+    if (isFlush) return { heldIndices: [0,1,2,3,4], ev: 6 };
+    if (isStraight) return { heldIndices: [0,1,2,3,4], ev: 4 };
+    if (maxCount === 3) {
+      const tripRank = Object.keys(rankCounts).find(r => rankCounts[r] === 3);
+      const tripIndices = cards.map((c, i) => c.rank === tripRank ? i : -1).filter(i => i >= 0);
+      return { heldIndices: tripIndices, ev: 3 };
+    }
+    
+    // Four to Straight Flush
+    if (maxSuitCount >= 4) {
+      const suitedCards = cards.filter(c => c.suit === maxSuit);
+      const suitedValues = suitedCards.map(c => RANK_VALUES[c.rank]).sort((a, b) => a - b);
+      
+      // Check for 4 cards that can make a straight (span <= 4)
+      if (suitedValues.length >= 4) {
+        for (let i = 0; i <= suitedValues.length - 4; i++) {
+          const span = suitedValues[i + 3] - suitedValues[i];
+          if (span <= 4) {
+            return { heldIndices: suitedIndices.slice(0, 4), ev: 2.6 };
+          }
+        }
+      }
+    }
+    
+    // Three to Royal Flush
+    if (maxSuitCount >= 3) {
+      const suitedRanks = cards.filter(c => c.suit === maxSuit).map(c => c.rank);
+      const royalRanks = ['T', 'J', 'Q', 'K', 'A'];
+      const royalCount = suitedRanks.filter(r => royalRanks.includes(r)).length;
+      if (royalCount >= 3) {
+        const royalIndices = cards.map((c, i) => c.suit === maxSuit && royalRanks.includes(c.rank) ? i : -1).filter(i => i >= 0).slice(0, 3);
+        return { heldIndices: royalIndices, ev: 1.2 };
+      }
+    }
+    
+    // Pair (hold the higher pair if multiple pairs exist)
+    if (pairRanks.length > 0) {
+      // Sort pairs by rank value (highest first)
+      const sortedPairs = pairRanks.sort((a, b) => RANK_VALUES[b] - RANK_VALUES[a]);
+      const pairToHold = sortedPairs[0]; // Hold highest pair
+      const pairIndices = cards.map((c, i) => c.rank === pairToHold ? i : -1).filter(i => i >= 0);
+      return { heldIndices: pairIndices, ev: 0.8 };
+    }
+    
+    // Four to Flush
+    if (maxSuitCount === 4) {
+      return { heldIndices: suitedIndices, ev: 0.7 };
+    }
+    
+    // Three to Straight Flush with 0 gaps (consecutive suited)
+    if (maxSuitCount >= 3) {
+      const suitedCards = cards.filter(c => c.suit === maxSuit);
+      const suitedValues = suitedCards.map(c => RANK_VALUES[c.rank]).sort((a, b) => a - b);
+      
+      if (suitedValues.length >= 3) {
+        for (let i = 0; i <= suitedValues.length - 3; i++) {
+          const span = suitedValues[i + 2] - suitedValues[i];
+          if (span === 2) { // Consecutive (e.g., 7-8-9)
+            const targetValues = [suitedValues[i], suitedValues[i+1], suitedValues[i+2]];
+            const sfIndices = cards.map((c, idx) => 
+              c.suit === maxSuit && targetValues.includes(RANK_VALUES[c.rank]) ? idx : -1
+            ).filter(i => i >= 0);
+            return { heldIndices: sfIndices, ev: 0.6 };
+          }
+        }
+      }
+    }
+    
+    // Three to Straight Flush with 1 gap
+    if (maxSuitCount >= 3) {
+      const suitedCards = cards.filter(c => c.suit === maxSuit);
+      const suitedValues = suitedCards.map(c => RANK_VALUES[c.rank]).sort((a, b) => a - b);
+      
+      if (suitedValues.length >= 3) {
+        for (let i = 0; i <= suitedValues.length - 3; i++) {
+          const span = suitedValues[i + 2] - suitedValues[i];
+          if (span === 3) { // 1 gap (e.g., 7-9-T)
+            const targetValues = [suitedValues[i], suitedValues[i+1], suitedValues[i+2]];
+            const sfIndices = cards.map((c, idx) => 
+              c.suit === maxSuit && targetValues.includes(RANK_VALUES[c.rank]) ? idx : -1
+            ).filter(i => i >= 0);
+            return { heldIndices: sfIndices, ev: 0.55 };
+          }
+        }
+      }
+    }
+    
+    // Discard all
+    return { heldIndices: [], ev: 0.45 };
+  }
+};
+
+// Main component
+function UltimateXPoker() {
+  const [gameType, setGameType] = useState('Jacks or Better');
+  const [payTableVariant, setPayTableVariant] = useState('8/5');
+  const [playMode, setPlayMode] = useState(1);
+  const [multiplier, setMultiplier] = useState(3);
+  const [multiplierInput, setMultiplierInput] = useState('3');
+  const [hands, setHands] = useState([]);
+  const [held, setHeld] = useState([]);
+  const [ultimateXMultipliers, setUltimateXMultipliers] = useState([]);
+  const [credits, setCredits] = useState(1000);
+  const [isDealt, setIsDealt] = useState(false);
+  const [results, setResults] = useState([]);
+  const [analyzerMode, setAnalyzerMode] = useState(false);
+  const [analyzerCards, setAnalyzerCards] = useState([]);
+  const [removedCards, setRemovedCards] = useState([]);
+  const [strategy, setStrategy] = useState(null);
+  const [showPayTable, setShowPayTable] = useState(false);
+  const [analyzerPlayMode, setAnalyzerPlayMode] = useState(1); // For strategy analysis
+  const [showResults, setShowResults] = useState(false); // For showing/hiding results in multi-play
+  const [mistakeWarned, setMistakeWarned] = useState(false); // Track if user has been warned about mistake
+  const [warningMessage, setWarningMessage] = useState(null); // Store warning message to display
+  
+  const currentPayTable = PAY_TABLES[gameType][payTableVariant];
+  // Bet is always 5 credits per hand (max coins). The multiplier is the UltimateX pool sum.
+  const creditsPerHand = 5;
+  const betAmount = creditsPerHand * playMode;
+  
+  const deal = useCallback(() => {
+    const deck = shuffleDeck(createDeck());
+    const firstFive = deck.slice(0, 5); // All hands start with the same 5 cards
+    
+    const newHands = Array(playMode).fill(null).map(() => [...firstFive]);
+    
+    setHands(newHands);
+    setHeld(Array(playMode).fill([false, false, false, false, false]));
+    setIsDealt(true);
+    setResults([]);
+    setShowResults(false); // Reset results visibility
+    setMistakeWarned(false); // Reset warning flag on new deal
+    setWarningMessage(null); // Clear any warning
+    setCredits(c => c - betAmount);
+    
+    // Resize ultimateXMultipliers to match playMode, preserving existing values (default 1x)
+    // And calculate the total multiplier sum for display
+    setUltimateXMultipliers(prev => {
+      const existing = prev.length > 0 ? prev : [];
+      const newMultipliers = Array(playMode).fill(0).map((_, i) => existing[i] || 1);
+      
+      // Update the multiplier state to show total sum
+      const totalMultiplier = newMultipliers.reduce((sum, m) => sum + m, 0);
+      setMultiplier(totalMultiplier);
+      setMultiplierInput(String(totalMultiplier)); // Also update the input display
+      
+      return newMultipliers;
+    });
+  }, [playMode, betAmount, ultimateXMultipliers.length]);
+  
+  const toggleHold = (handIndex, cardIndex) => {
+    if (!isDealt || results.length > 0) return;
+    
+    const newHeld = [...held];
+    const handHeld = [...newHeld[handIndex]];
+    
+    if (handIndex === 0) {
+      handHeld[cardIndex] = !handHeld[cardIndex];
+      for (let i = 0; i < playMode; i++) {
+        newHeld[i] = [...handHeld];
+      }
+    }
+    
+    setHeld(newHeld);
+  };
+  
+  const checkForMistakes = useCallback(() => {
+    // If already warned, allow the draw
+    if (mistakeWarned) {
+      console.log('Already warned, proceeding with draw');
+      return true;
+    }
+    
+    // Only check the first hand's holds (all hands use same hold pattern)
+    const firstHand = hands[0];
+    const firstHeld = held[0];
+    
+    console.log('Checking for mistakes...');
+    console.log('First hand:', firstHand.map(c => c.rank + c.suit));
+    console.log('Held pattern:', firstHeld);
+    
+    // Get indices of held cards
+    const heldIndices = firstHeld.map((h, i) => h ? i : -1).filter(i => i >= 0);
+    console.log('Held indices:', heldIndices);
+    
+    // Get recommended strategy
+    const recommendation = analyzeStrategy(firstHand, gameType, currentPayTable, playMode);
+    console.log('Recommendation:', recommendation);
+    
+    // Check if user's hold matches recommendation
+    const userHold = heldIndices.sort().join(',');
+    const recommendHold = recommendation.heldIndices.sort().join(',');
+    
+    console.log('User hold string:', userHold);
+    console.log('Recommend hold string:', recommendHold);
+    console.log('Match?', userHold === recommendHold);
+    
+    if (userHold !== recommendHold && recommendation.heldIndices.length >= 0) {
+      const recommendedCards = recommendation.heldIndices.map(i => firstHand[i].rank + firstHand[i].suit).join(' ');
+      const userCards = heldIndices.length > 0 ? heldIndices.map(i => firstHand[i].rank + firstHand[i].suit).join(' ') : 'nothing';
+      
+      console.log('Showing warning!');
+      const warningObj = {
+        userCards,
+        recommendedCards: recommendedCards || 'Discard all',
+        ev: recommendation.ev.toFixed(2)
+      };
+      console.log('Setting warningMessage to:', warningObj);
+      setWarningMessage(warningObj);
+      setMistakeWarned(true); // Mark as warned
+      return false; // Don't proceed with draw yet
+    }
+    
+    console.log('No mistake detected or matches recommendation');
+    return true; // No mistake or matches recommendation
+  }, [hands, held, gameType, currentPayTable, playMode, mistakeWarned]);
+
+  const draw = useCallback(() => {
+    // Each hand draws from its own independent shuffled deck
+    const newHands = hands.map((hand, handIndex) => {
+      const deck = shuffleDeck(createDeck());
+      // Remove the held cards from this hand's deck
+      const heldCardIds = hand.filter((card, idx) => held[handIndex][idx]).map(c => c.id);
+      const availableCards = deck.filter(c => !heldCardIds.includes(c.id));
+      
+      let drawIndex = 0;
+      return hand.map((card, cardIndex) => {
+        if (held[handIndex][cardIndex]) return card;
+        return availableCards[drawIndex++];
+      });
+    });
+    
+    const newResults = newHands.map((hand, handIndex) => {
+      const result = evaluateHand(hand, gameType, currentPayTable);
+      const currentMultiplier = ultimateXMultipliers[handIndex] || 1;
+      // Payout = paytable_value × 5 coins × current UltimateX multiplier for this hand
+      const winAmount = result.payout * 5 * currentMultiplier;
+      return { ...result, winAmount, multiplier: currentMultiplier };
+    });
+    
+    const totalWin = newResults.reduce((sum, r) => sum + r.winAmount, 0);
+    setCredits(c => c + totalWin);
+    
+    // Get Ultimate X multipliers for next hand based on what each hand made
+    const newMultipliers = newResults.map(result => {
+      // If no win, next hand gets 1X
+      if (result.payout === 0) return 1;
+      
+      // Look up the multiplier for this hand result in the Ultimate X table
+      const multiplierTable = ULTIMATE_X_MULTIPLIERS[gameType]?.[payTableVariant];
+      if (multiplierTable && multiplierTable[result.hand]) {
+        return multiplierTable[result.hand];
+      }
+      
+      // Fallback: if not in table, return 2X for any win
+      return 2;
+    });
+    
+    setHands(newHands);
+    setResults(newResults);
+    setUltimateXMultipliers(newMultipliers);
+    setIsDealt(false);
+  }, [hands, held, gameType, currentPayTable, multiplier, ultimateXMultipliers, playMode]);
+  
+  const attemptDraw = useCallback(() => {
+    if (checkForMistakes()) {
+      setWarningMessage(null); // Clear warning when drawing
+      draw();
+    }
+  }, [checkForMistakes, draw]);
+  
+  const analyzeHand = useCallback(() => {
+    if (analyzerCards.length === 5) {
+      const bestStrategy = analyzeStrategy(analyzerCards, gameType, currentPayTable, analyzerPlayMode);
+      setStrategy(bestStrategy);
+    } else {
+      setStrategy(null);
+    }
+  }, [analyzerCards, gameType, currentPayTable]);
+  
+  const addAnalyzerCard = (card) => {
+    if (analyzerCards.length < 5 && !removedCards.includes(card.id)) {
+      setAnalyzerCards([...analyzerCards, card]);
+    }
+  };
+  
+  const removeAnalyzerCard = (index) => {
+    setAnalyzerCards(analyzerCards.filter((_, i) => i !== index));
+  };
+  
+  const toggleCardRemoval = (cardId) => {
+    if (removedCards.includes(cardId)) {
+      setRemovedCards(removedCards.filter(id => id !== cardId));
+    } else {
+      setRemovedCards([...removedCards, cardId]);
+      setAnalyzerCards(analyzerCards.filter(c => c.id !== cardId));
+    }
+  };
+  
+  const resetAnalyzer = () => {
+    setAnalyzerCards([]);
+    setRemovedCards([]);
+    setStrategy(null);
+  };
+  
+  const availableDeck = useMemo(() => {
+    return createDeck().filter(c => !removedCards.includes(c.id));
+  }, [removedCards]);
+  
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white p-2 sm:p-4 font-sans">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Righteous&family=Rubik:wght@400;500;700&display=swap');
+        
+        * { box-sizing: border-box; }
+        
+        body {
+          font-family: 'Rubik', sans-serif;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+        }
+        
+        .poker-title {
+          font-family: 'Righteous', cursive;
+          background: linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FF6B6B 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+        }
+        
+        .card {
+          aspect-ratio: 2.5/3.5;
+          border-radius: 8px;
+          background: white;
+          color: black;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+          transition: all 0.2s ease;
+          position: relative;
+          overflow: hidden;
+        }
+        
+        .card.held {
+          transform: translateY(-12px);
+          box-shadow: 0 8px 20px rgba(255, 215, 0, 0.6), 0 0 30px rgba(255, 215, 0, 0.4);
+        }
+        
+        .card.recommended {
+          box-shadow: 0 0 0 3px #10b981, 0 4px 12px rgba(0,0,0,0.4);
+        }
+        
+        .card-red { color: #DC2626; }
+        .card-black { color: #1F2937; }
+        
+        .card-small {
+          aspect-ratio: 2.5/3.5;
+          border-radius: 6px;
+          background: white;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+        
+        .card-removed {
+          opacity: 0.3;
+          filter: grayscale(100%);
+        }
+        
+        .btn {
+          padding: 0.75rem 1.5rem;
+          border-radius: 12px;
+          font-weight: 600;
+          transition: all 0.2s ease;
+          border: none;
+          cursor: pointer;
+          font-family: 'Rubik', sans-serif;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          font-size: 0.875rem;
+        }
+        
+        .btn:active {
+          transform: scale(0.95);
+        }
+        
+        .btn-primary {
+          background: linear-gradient(135deg, #FFD700, #FFA500);
+          color: #1F2937;
+          box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
+        }
+        
+        .btn-primary:hover {
+          box-shadow: 0 6px 20px rgba(255, 215, 0, 0.6);
+          transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+          background: linear-gradient(135deg, #8B5CF6, #6366F1);
+          color: white;
+          box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+        }
+        
+        .btn-secondary:hover {
+          box-shadow: 0 6px 20px rgba(139, 92, 246, 0.6);
+          transform: translateY(-2px);
+        }
+        
+        .btn-game {
+          padding: 0.5rem 1rem;
+          background: rgba(255, 255, 255, 0.1);
+          border: 2px solid rgba(255, 255, 255, 0.2);
+          color: white;
+          border-radius: 8px;
+          font-size: 0.75rem;
+          transition: all 0.2s ease;
+        }
+        
+        .btn-game:hover {
+          background: rgba(255, 255, 255, 0.15);
+          border-color: rgba(255, 215, 0, 0.5);
+        }
+        
+        .btn-game.active {
+          background: linear-gradient(135deg, #FFD700, #FFA500);
+          color: #1F2937;
+          border-color: #FFD700;
+          box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+        
+        .multiplier-badge {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          background: linear-gradient(135deg, #FF6B6B, #FF8E53);
+          color: white;
+          font-weight: 700;
+          border-radius: 999px;
+          padding: 0.25rem 0.75rem;
+          font-size: 0.875rem;
+          box-shadow: 0 2px 8px rgba(255, 107, 107, 0.4);
+        }
+        
+        .pay-table {
+          background: rgba(0, 0, 0, 0.4);
+          border-radius: 12px;
+          padding: 0.75rem;
+          backdrop-filter: blur(10px);
+        }
+        
+        .pay-row {
+          display: flex;
+          justify-content: space-between;
+          padding: 0.375rem 0.5rem;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+          font-size: 0.813rem;
+        }
+        
+        .pay-row:last-child {
+          border-bottom: none;
+        }
+        
+        .pay-row.winner {
+          background: linear-gradient(90deg, rgba(255, 215, 0, 0.2), transparent);
+          font-weight: 700;
+          color: #FFD700;
+        }
+        
+        .deck-grid {
+          display: grid;
+          grid-template-columns: repeat(13, 1fr);
+          gap: 4px;
+          max-height: 192px;
+          overflow-y: auto;
+          padding: 8px;
+          background: rgba(0, 0, 0, 0.3);
+          border-radius: 8px;
+        }
+        
+        .deck-grid::-webkit-scrollbar {
+          width: 6px;
+        }
+        
+        .deck-grid::-webkit-scrollbar-track {
+          background: rgba(0, 0, 0, 0.2);
+          border-radius: 3px;
+        }
+        
+        .deck-grid::-webkit-scrollbar-thumb {
+          background: rgba(255, 215, 0, 0.5);
+          border-radius: 3px;
+        }
+        
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.7; }
+        }
+        
+        .animate-pulse {
+          animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @media (max-width: 640px) {
+          .btn { padding: 0.625rem 1rem; font-size: 0.75rem; }
+          .poker-title { font-size: 1.5rem; }
+          .pay-row { font-size: 0.75rem; padding: 0.25rem 0.375rem; }
+        }
+      `}</style>
+
+```
+  <div className="max-w-6xl mx-auto">
+    {/* Header */}
+    <div className="text-center mb-6">
+      <h1 className="poker-title text-4xl sm:text-5xl font-bold mb-2 flex items-center justify-center gap-3">
+        <Zap className="w-8 h-8 sm:w-10 sm:h-10" />
+        ULTIMATE X POKER
+        <Zap className="w-8 h-8 sm:w-10 sm:h-10" />
+      </h1>
+      <div className="flex items-center justify-center gap-4 text-xl font-bold">
+        <div className="bg-black/40 px-6 py-2 rounded-lg backdrop-blur">
+          <Trophy className="inline w-5 h-5 mr-2 text-yellow-400" />
+          Credits: {credits}
+        </div>
+      </div>
+    </div>
+    
+    {/* Mode Toggle */}
+    <div className="flex gap-2 mb-4 justify-center">
+      <button
+        onClick={() => { setAnalyzerMode(false); resetAnalyzer(); }}
+        className={`btn ${!analyzerMode ? 'btn-primary' : 'btn-game'}`}
+      >
+        <PlayCircle className="inline w-4 h-4 mr-1" />
+        Play
+      </button>
+      <button
+        onClick={() => setAnalyzerMode(true)}
+        className={`btn ${analyzerMode ? 'btn-primary' : 'btn-game'}`}
+      >
+        <Brain className="inline w-4 h-4 mr-1" />
+        Analyzer
+      </button>
+    </div>
+    
+    {!analyzerMode ? (
+      <>
+        {/* Game Selection */}
+        <div className="mb-4">
+          <div className="text-sm font-semibold mb-2 text-yellow-400">GAME TYPE:</div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {Object.keys(PAY_TABLES).map(game => (
+              <button
+                key={game}
+                onClick={() => {
+                  setGameType(game);
+                  setPayTableVariant(Object.keys(PAY_TABLES[game])[0]);
+                  setIsDealt(false);
+                  setResults([]);
+                }}
+                className={`btn-game ${gameType === game ? 'active' : ''}`}
+              >
+                {game}
+              </button>
+            ))}
+          </div>
+        </div>
+        
+        {/* Pay Table Variant */}
+        <div className="mb-4">
+          <div className="text-sm font-semibold mb-2 text-yellow-400">PAY TABLE:</div>
+          <div className="flex gap-2 flex-wrap">
+            {Object.keys(PAY_TABLES[gameType]).map(variant => (
+              <button
+                key={variant}
+                onClick={() => {
+                  if (payTableVariant === variant) {
+                    // If already selected, toggle pay table display
+                    setShowPayTable(!showPayTable);
+                  } else {
+                    // Select new variant
+                    setPayTableVariant(variant);
+                    setIsDealt(false);
+                    setResults([]);
+                    setShowPayTable(false);
+                  }
+                }}
+                className={`btn-game ${payTableVariant === variant ? 'active' : ''}`}
+              >
+                {variant}
+              </button>
+            ))}
+          </div>
+        </div>
+        
+        
+        {/* Play Mode */}
+        <div className="mb-4">
+          <div className="text-sm font-semibold mb-2 text-yellow-400">PLAY MODE <span style={{fontWeight:400, color:'rgba(255,255,255,0.5)', fontSize:'0.7rem'}}>(5 credits per hand)</span>:</div>
+          <div className="flex gap-2 flex-wrap">
+            {[1, 3, 5, 10].map(mode => (
+              <button
+                key={mode}
+                onClick={() => {
+                  setPlayMode(mode);
+                  setIsDealt(false);
+                  setResults([]);
+                  setUltimateXMultipliers([]);
+                }}
+                className={`btn-game ${playMode === mode ? 'active' : ''}`}
+              >
+                {mode === 1 ? 'Single Hand' : `${mode} Hands`}
+              </button>
+            ))}
+          </div>
+        </div>
+        
+        {/* Multiplier */}
+        <div className="mb-4">
+          <div className="text-sm font-semibold mb-2 text-yellow-400">
+            ULTIMATE X TOTAL MULTIPLIER <span style={{fontWeight:400,color:'rgba(255,255,255,0.5)',fontSize:'0.7rem'}}>(sum of all active multipliers)</span>
+          </div>
+          <div className="flex items-center gap-3 mb-2">
+            <input
+              type="number"
+              min={3}
+              max={36}
+              value={multiplierInput}
+              onChange={e => setMultiplierInput(e.target.value)}
+              onBlur={() => {
+                const v = parseInt(multiplierInput, 10);
+                const clamped = isNaN(v) ? 3 : Math.min(36, Math.max(3, v));
+                setMultiplier(clamped);
+                setMultiplierInput(String(clamped));
+              }}
+              style={{
+                width: 72,
+                padding: '6px 10px',
+                borderRadius: 8,
+                border: '2px solid rgba(255,215,0,0.5)',
+                background: 'rgba(0,0,0,0.5)',
+                color: '#FFD700',
+                fontSize: '1.1rem',
+                fontWeight: 700,
+                textAlign: 'center',
+                outline: 'none',
+              }}
+            />
+            <span style={{color:'rgba(255,255,255,0.4)',fontSize:'0.75rem',lineHeight:1.3}}>auto-updates when you deal<br/>based on current multipliers</span>
+          </div>
+          <div className="flex gap-2 flex-wrap">
+          </div>
+          
+          {/* Multiplier Distribution Table */}
+          {playMode > 1 && ultimateXMultipliers.length > 0 && (
+            <div style={{
+              background: 'rgba(0,0,0,0.4)',
+              borderRadius: 12,
+              padding: '0.75rem',
+              marginTop: '1rem',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255,215,0,0.2)'
+            }}>
+              <div style={{textAlign:'center',fontWeight:700,fontSize:'0.813rem',color:'#FFD700',marginBottom:'0.5rem'}}>
+                SUM OF NEXT HAND MULTIPLIERS
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:`repeat(${Math.min(playMode, 5)}, 1fr)`,gap:'0.5rem'}}>
+                {ultimateXMultipliers.map((mult, idx) => (
+                  <div key={idx} style={{
+                    background: mult > 1 ? 'linear-gradient(135deg,#FF6B6B,#FF8E53)' : 'rgba(255,255,255,0.1)',
+                    borderRadius: 8,
+                    padding: '0.375rem 0.5rem',
+                    textAlign: 'center',
+                    border: mult > 1 ? '2px solid rgba(255,215,0,0.3)' : '1px solid rgba(255,255,255,0.1)'
+                  }}>
+                    <div style={{fontSize:'0.625rem',color:'rgba(255,255,255,0.7)',fontWeight:600,marginBottom:2}}>
+                      Hand {idx + 1}
+                    </div>
+                    <div style={{fontSize:'1.125rem',fontWeight:800,color:'#fff'}}>
+                      {mult}X
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div style={{textAlign:'center',fontSize:'0.625rem',color:'rgba(255,255,255,0.4)',marginTop:'0.5rem'}}>
+                Total: {ultimateXMultipliers.reduce((a,b)=>a+b,0)} (Pool: {multiplier})
+              </div>
+            </div>
+          )}
+        </div>
+        
+        {/* Hands Display */}
+        <div className="grid gap-4 mb-4" style={{
+          gridTemplateColumns: playMode === 1 ? '1fr' : 
+            results.length > 0 ? (playMode === 3 ? 'repeat(3, 1fr)' : playMode === 5 ? 'repeat(5, 1fr)' : 'repeat(auto-fit, minmax(140px, 1fr))') :
+            '1fr' // Before draw, always show single column
+        }}>
+          {hands.map((hand, handIndex) => {
+            // Before draw in multi-play: only show first hand
+            if (playMode > 1 && isDealt && results.length === 0 && handIndex !== 0) {
+              return null;
+            }
+            
+            // After draw in 5+ hand mode: hide if showResults is false
+            if (playMode >= 5 && results.length > 0 && !showResults && handIndex !== 0) {
+              return null;
+            }
+            
+            const isCompact = playMode > 1 && results.length > 0; // Compact mode after draw
+            
+            return (
+            <div key={handIndex} className="bg-black/40 rounded-lg backdrop-blur" style={{
+              padding: isCompact ? '8px' : '12px'
+            }}>
+              <div className="flex items-center justify-between mb-2">
+                <span style={{fontSize: isCompact ? '0.625rem' : '0.75rem', fontWeight: 700, color: '#facc15'}}>
+                  HAND {handIndex + 1}
+                </span>
+                <div className="flex gap-1 items-center">
+                  {/* Active multiplier this hand */}
+                  {(ultimateXMultipliers[handIndex] || 1) > 1 && !results[handIndex] && (
+                    <span className="multiplier-badge animate-pulse" style={{
+                      fontSize: isCompact ? '0.5rem' : '0.625rem',
+                      padding: isCompact ? '2px 4px' : '2px 6px'
+                    }}>
+                      {ultimateXMultipliers[handIndex]}X ACTIVE
+                    </span>
+                  )}
+                  {/* Next-hand multiplier after draw */}
+                  {results[handIndex] && (
+                    <span className="multiplier-badge" style={{
+                      background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
+                      fontSize: isCompact ? '0.5rem' : '0.625rem',
+                      padding: isCompact ? '2px 4px' : '2px 6px'
+                    }}>
+                      NEXT: {ultimateXMultipliers[handIndex]}X
+                    </span>
+                  )}
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-5 gap-1 mb-2">
+                {hand.map((card, cardIndex) => {
+                  const isRed = card.suit === '♥' || card.suit === '♦';
+                  const isHoldable = handIndex === 0 && isDealt && results.length === 0;
+                  const isHeld = held[handIndex]?.[cardIndex];
+                  
+                  const cardFontSize = isCompact ? 9 : 13;
+                  const suitFontSizeSmall = isCompact ? 7 : 11;
+                  const centerSuitSize = isCompact ? 18 : 28;
+                  
+                  return (
+                    <div
+                      key={cardIndex}
+                      onClick={() => isHoldable && toggleHold(handIndex, cardIndex)}
+                      style={{
+                        aspectRatio: '2.5/3.5',
+                        borderRadius: isCompact ? 4 : 8,
+                        background: '#fff',
+                        color: isRed ? '#dc2626' : '#111827',
+                        boxShadow: isHeld
+                          ? '0 0 0 3px #FFD700, 0 8px 20px rgba(255,215,0,0.5)'
+                          : '0 4px 10px rgba(0,0,0,0.4)',
+                        transform: isHeld ? 'translateY(-10px)' : 'none',
+                        transition: 'all 0.2s ease',
+                        cursor: isHoldable ? 'pointer' : 'default',
+                        position: 'relative',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        padding: isCompact ? '2px 3px' : '4px 5px',
+                        userSelect: 'none',
+                        flexShrink: 0,
+                      }}
+                    >
+                      {/* Top-left: rank + suit */}
+                      <div style={{fontSize:cardFontSize,fontWeight:800,lineHeight:1,display:'flex',flexDirection:'column',alignItems:'flex-start',gap:isCompact?0:1}}>
+                        <span>{card.rank}</span>
+                        <span style={{fontSize:suitFontSizeSmall}}>{card.suit}</span>
+                      </div>
+                      {/* Center suit */}
+                      <div style={{position:'absolute',top:'50%',left:'50%',transform:'translate(-50%,-50%)',fontSize:centerSuitSize,lineHeight:1,pointerEvents:'none'}}>
+                        {card.suit}
+                      </div>
+                      {/* Bottom-right: rank + suit rotated */}
+                      <div style={{fontSize:cardFontSize,fontWeight:800,lineHeight:1,display:'flex',flexDirection:'column',alignItems:'flex-end',gap:isCompact?0:1,transform:'rotate(180deg)'}}>
+                        <span>{card.rank}</span>
+                        <span style={{fontSize:suitFontSizeSmall}}>{card.suit}</span>
+                      </div>
+                      {/* HOLD label for hand 0 only */}
+                      {isHeld && handIndex === 0 && (
+                        <div style={{position:'absolute',bottom:-18,left:0,right:0,textAlign:'center',fontSize:10,fontWeight:800,color:'#FFD700',letterSpacing:1}}>
+                          HOLD
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              
+              {results[handIndex] && (
+                <div style={{textAlign:'center',marginTop: isCompact ? '0.25rem' : '0.5rem'}}>
+                  <div style={{fontWeight:700,color:'#FBBF24',fontSize: isCompact ? '0.625rem' : '0.875rem',marginBottom:isCompact ? '0.125rem' : '0.25rem'}}>
+                    {results[handIndex].hand}
+                  </div>
+                  {results[handIndex].payout > 0 ? (
+                    <div style={{display:'flex',flexDirection:'column',gap:'0.125rem',alignItems:'center'}}>
+                      <div style={{fontSize: isCompact ? '0.5rem' : '0.75rem',color:'rgba(255,255,255,0.6)'}}>
+                        {results[handIndex].payout} × 5
+                        {results[handIndex].multiplier > 1 && (
+                          <span style={{color:'#FF6B6B',fontWeight:700,marginLeft:'0.25rem'}}>
+                            × {results[handIndex].multiplier}X
+                          </span>
+                        )}
+                      </div>
+                      <div style={{color:'#10B981',fontWeight:800,fontSize: isCompact ? '0.875rem' : '1.125rem'}}>
+                        +{results[handIndex].winAmount}
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{fontSize: isCompact ? '0.5rem' : '0.75rem',color:'rgba(255,255,255,0.4)'}}>
+                      No win
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+          })}
+        </div>
+        
+        {/* Strategy Warning Banner */}
+        {warningMessage && (
+          <div style={{
+            margin: '0 0 20px 0',
+            padding: '20px',
+            background: 'linear-gradient(135deg, #f59e0b, #dc2626)',
+            borderRadius: '12px',
+            border: '3px solid #fbbf24',
+            boxShadow: '0 0 20px rgba(251, 191, 36, 0.5)'
+          }}>
+            <div style={{ textAlign: 'center', color: 'white' }}>
+              <div style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '10px' }}>
+                ⚠️ STRATEGY WARNING ⚠️
+              </div>
+              <div style={{ fontSize: '16px', marginBottom: '8px' }}>
+                <strong>You're holding:</strong> {warningMessage.userCards}
+              </div>
+              <div style={{ fontSize: '16px', marginBottom: '8px' }}>
+                <strong>Better play:</strong> {warningMessage.recommendedCards}
+              </div>
+              <div style={{ fontSize: '16px', marginBottom: '8px' }}>
+                <strong>Expected Value:</strong> {warningMessage.ev}
+              </div>
+              <div style={{ fontSize: '14px', marginTop: '12px', fontWeight: 'bold' }}>
+                This is not optimal strategy.<br/>
+                Click DRAW again to proceed anyway.
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Current Hand Multipliers (before dealing) */}
+        {!isDealt && ultimateXMultipliers.some(m => m > 1) && (
+          <div style={{
+            margin: '0 0 20px 0',
+            padding: '16px',
+            background: 'linear-gradient(135deg, #10b981, #059669)',
+            borderRadius: '12px',
+            border: '2px solid #34d399',
+            boxShadow: '0 0 15px rgba(16, 185, 129, 0.4)'
+          }}>
+            <div style={{ textAlign: 'center', color: 'white' }}>
+              <div style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '10px' }}>
+                🎰 ACTIVE MULTIPLIERS 🎰
+              </div>
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: playMode === 1 ? '1fr' : playMode === 3 ? 'repeat(3, 1fr)' : playMode === 5 ? 'repeat(5, 1fr)' : 'repeat(auto-fit, minmax(60px, 1fr))',
+                gap: '8px',
+                maxWidth: '600px',
+                margin: '0 auto'
+              }}>
+                {ultimateXMultipliers.map((mult, i) => (
+                  <div key={i} style={{
+                    padding: '8px',
+                    background: mult > 1 ? 'rgba(251, 191, 36, 0.3)' : 'rgba(255, 255, 255, 0.15)',
+                    borderRadius: '8px',
+                    border: mult > 1 ? '2px solid #fbbf24' : '1px solid rgba(255, 255, 255, 0.3)'
+                  }}>
+                    <div style={{ fontSize: '9px', marginBottom: '2px', opacity: 0.8 }}>
+                      Hand {i + 1}
+                    </div>
+                    <div style={{ 
+                      fontSize: mult > 1 ? '22px' : '16px', 
+                      fontWeight: 'bold',
+                      color: mult > 1 ? '#fbbf24' : 'white'
+                    }}>
+                      {mult}X
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ fontSize: '11px', marginTop: '10px', opacity: 0.95, fontWeight: 'bold' }}>
+                Sum of Active Multipliers: {multiplier}X
+              </div>
+              <div style={{ fontSize: '10px', marginTop: '4px', opacity: 0.75, fontStyle: 'italic' }}>
+                (This applies to your current hand)
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Action Buttons */}
+        <div className="flex gap-3 justify-center mb-4">
+          {!isDealt ? (
+            <button
+              onClick={deal}
+              disabled={credits < betAmount}
+              className="btn btn-primary text-lg px-8"
+            >
+              DEAL — {playMode > 1 ? `${playMode} × 5 = ` : ''}{betAmount} Credits
+            </button>
+          ) : (
+            <button
+              onClick={attemptDraw}
+              className="btn btn-secondary text-lg px-8"
+            >
+              DRAW
+            </button>
+          )}
+        </div>
+        
+        {/* See Results Button for 5+ hands */}
+        {playMode >= 5 && results.length > 0 && (
+          <div className="flex justify-center mb-4">
+            <button
+              onClick={() => setShowResults(!showResults)}
+              className="btn btn-primary text-base px-6"
+              style={{
+                background: showResults ? 'linear-gradient(135deg, #6366f1, #8b5cf6)' : 'linear-gradient(135deg, #10b981, #059669)'
+              }}
+            >
+              {showResults ? '▲ Hide All Results' : `▼ See All ${playMode} Results`}
+            </button>
+          </div>
+        )}
+        
+
+      </>
+    ) : (
+      <>
+        {/* Analyzer Mode */}
+        <div className="mb-4">
+
+          {/* Game Selection */}
+          <div className="mb-3">
+            <div className="text-sm font-semibold mb-2 text-yellow-400">GAME:</div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {Object.keys(PAY_TABLES).map(game => (
+                <button
+                  key={game}
+                  onClick={() => {
+                    setGameType(game);
+                    setPayTableVariant(Object.keys(PAY_TABLES[game])[0]);
+                    setStrategy(null);
+                  }}
+                  className={`btn-game ${gameType === game ? 'active' : ''}`}
+                >
+                  {game}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Pay Table Variant */}
+          <div className="mb-3">
+            <div className="text-sm font-semibold mb-2 text-yellow-400">PAY TABLE:</div>
+            <div className="flex gap-2 flex-wrap">
+              {Object.keys(PAY_TABLES[gameType]).map(variant => (
+                <button
+                  key={variant}
+                  onClick={() => {
+                    if (payTableVariant === variant) {
+                      // If already selected, toggle pay table display
+                      setShowPayTable(!showPayTable);
+                    } else {
+                      // Select new variant
+                      setPayTableVariant(variant);
+                      setStrategy(null);
+                      setShowPayTable(false);
+                    }
+                  }}
+                  className={`btn-game ${payTableVariant === variant ? 'active' : ''}`}
+                >
+                  {variant}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Analyzer Play Mode Selector */}
+          <div className="mb-3">
+            <div className="text-sm font-semibold mb-2 text-yellow-400">ANALYZING FOR:</div>
+            <div className="flex gap-2 flex-wrap">
+              {[1, 3, 5, 10].map(mode => (
+                <button
+                  key={mode}
+                  onClick={() => {
+                    setAnalyzerPlayMode(mode);
+                    setStrategy(null); // Clear strategy when changing play mode
+                  }}
+                  className={`btn-game ${analyzerPlayMode === mode ? 'active' : ''}`}
+                  style={{minWidth:'80px'}}
+                >
+                  {mode === 1 ? 'Single' : `${mode} Hands`}
+                </button>
+              ))}
+            </div>
+            <div className="text-xs mt-1 text-gray-400">
+              {analyzerPlayMode > 1 && '⚡ Multi-play favors guaranteed wins and multiplier-earning hands'}
+            </div>
+          </div>
+
+          {/* Analyzer Multiplier Input */}
+          <div className="mb-4">
+            <div className="text-sm font-semibold mb-2 text-yellow-400">
+              ACTIVE MULTIPLIER <span style={{fontWeight:400,color:'rgba(255,255,255,0.5)',fontSize:'0.7rem'}}>(sum of multipliers for this hand)</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <input
+                type="number"
+                min={analyzerPlayMode}
+                max={analyzerPlayMode * 12}
+                value={multiplierInput}
+                onChange={(e) => {
+                  const inputVal = e.target.value;
+                  // Allow empty string while typing
+                  if (inputVal === '') {
+                    setMultiplierInput('');
+                    return;
+                  }
+                  // Parse as integer
+                  const val = parseInt(inputVal, 10);
+                  if (!isNaN(val)) {
+                    setMultiplierInput(String(val));
+                    setMultiplier(val);
+                    setStrategy(null); // Recalculate when multiplier changes
+                  }
+                }}
+                onBlur={(e) => {
+                  // On blur, ensure we have a valid value
+                  const val = parseInt(e.target.value, 10);
+                  if (isNaN(val) || val < analyzerPlayMode) {
+                    setMultiplierInput(String(analyzerPlayMode));
+                    setMultiplier(analyzerPlayMode);
+                  }
+                }}
+                className="px-3 py-2 bg-gray-700 text-white rounded text-center font-bold"
+                style={{width: '80px', fontSize: '18px'}}
+              />
+              <span className="text-white text-lg">X</span>
+              <div className="text-xs text-gray-400">
+                {analyzerPlayMode === 1 ? '(3-12 for single hand)' : `(${analyzerPlayMode}-${analyzerPlayMode * 12} for ${analyzerPlayMode} hands)`}
+              </div>
+            </div>
+            <div className="text-xs mt-1 text-gray-400">
+              💡 Higher multipliers may change optimal strategy
+            </div>
+          </div>
+
+          <div className="text-sm font-semibold mb-2 text-yellow-400">SELECT 5 CARDS:</div>
+          <div className="grid grid-cols-5 gap-2 mb-4">
+            {analyzerCards.map((card, index) => {
+              const isRed = card.suit === '♥' || card.suit === '♦';
+              const isRecommended = strategy?.heldIndices.includes(index);
+              return (
+                <div
+                  key={index}
+                  onClick={() => removeAnalyzerCard(index)}
+                  style={{
+                    aspectRatio: '2.5/3.5',
+                    borderRadius: 8,
+                    background: '#fff',
+                    color: isRed ? '#dc2626' : '#111827',
+                    boxShadow: isRecommended
+                      ? '0 0 0 3px #10b981, 0 4px 12px rgba(0,0,0,0.4)'
+                      : '0 4px 10px rgba(0,0,0,0.4)',
+                    cursor: 'pointer',
+                    position: 'relative',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    padding: '4px 5px',
+                    userSelect: 'none',
+                  }}
+                >
+                  <div style={{fontSize:13,fontWeight:800,lineHeight:1,display:'flex',flexDirection:'column',alignItems:'flex-start',gap:1}}>
+                    <span>{card.rank}</span>
+                    <span style={{fontSize:11}}>{card.suit}</span>
+                  </div>
+                  <div style={{position:'absolute',top:'50%',left:'50%',transform:'translate(-50%,-50%)',fontSize:28,lineHeight:1,pointerEvents:'none'}}>
+                    {card.suit}
+                  </div>
+                  <div style={{fontSize:13,fontWeight:800,lineHeight:1,display:'flex',flexDirection:'column',alignItems:'flex-end',gap:1,transform:'rotate(180deg)'}}>
+                    <span>{card.rank}</span>
+                    <span style={{fontSize:11}}>{card.suit}</span>
+                  </div>
+                </div>
+              );
+            })}
+            {Array(5 - analyzerCards.length).fill(null).map((_, i) => (
+              <div key={`empty-${i}`} style={{aspectRatio:'2.5/3.5',borderRadius:8,background:'rgba(107,114,128,0.3)',border:'2px dashed rgba(255,255,255,0.1)'}}></div>
+            ))}
+          </div>
+          
+          <div className="text-xs font-semibold mb-2 text-yellow-400">
+            DECK — tap to select (or remove from deck):
+          </div>
+          <div style={{ maxHeight: 145, overflowY: 'auto', background: 'rgba(0,0,0,0.35)', borderRadius: 8, padding: '5px 3px' }}>
+            {SUITS.map(suit => {
+              const suitCards = RANKS.map(rank => ({ rank, suit, id: `${rank}${suit}` }));
+              const isRed = suit === '♥' || suit === '♦';
+              return (
+                <div key={suit} style={{ display: 'flex', gap: 2, marginBottom: 3, alignItems: 'center' }}>
+                  <span style={{ color: isRed ? '#ef4444' : '#e2e8f0', fontSize: 11, fontWeight: 700, width: 12, flexShrink: 0, textAlign: 'center' }}>{suit}</span>
+                  {suitCards.map(card => {
+                    const isSelected = analyzerCards.some(c => c.id === card.id);
+                    const isRemoved = removedCards.includes(card.id);
+                    return (
+                      <div
+                        key={card.id}
+                        onClick={() => {
+                          if (isSelected) return;
+                          if (isRemoved) {
+                            setRemovedCards(removedCards.filter(id => id !== card.id));
+                          } else if (analyzerCards.length < 5) {
+                            addAnalyzerCard(card);
+                          } else {
+                            toggleCardRemoval(card.id);
+                          }
+                        }}
+                        style={{
+                          width: 24,
+                          height: 34,
+                          background: isRemoved ? '#374151' : isSelected ? '#fef9c3' : '#fff',
+                          borderRadius: 3,
+                          boxShadow: isSelected
+                            ? '0 0 0 2px #f59e0b, 0 2px 6px rgba(0,0,0,0.4)'
+                            : '0 2px 4px rgba(0,0,0,0.4)',
+                          cursor: isSelected ? 'default' : 'pointer',
+                          position: 'relative',
+                          flexShrink: 0,
+                          opacity: isRemoved ? 0.35 : 1,
+                          transition: 'all 0.15s ease',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'space-between',
+                          padding: '2px 2px',
+                          color: isRemoved ? '#6b7280' : isRed ? '#dc2626' : '#111827',
+                        }}
+                      >
+                        {/* Top-left rank + suit */}
+                        <div style={{ fontSize: 8, fontWeight: 800, lineHeight: 1, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 0 }}>
+                          <span>{card.rank}</span>
+                          <span style={{ fontSize: 7 }}>{suit}</span>
+                        </div>
+                        {/* Center suit */}
+                        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', fontSize: 12, lineHeight: 1 }}>
+                          {suit}
+                        </div>
+                        {/* Bottom-right rank + suit rotated */}
+                        <div style={{ fontSize: 8, fontWeight: 800, lineHeight: 1, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0, transform: 'rotate(180deg)' }}>
+                          <span>{card.rank}</span>
+                          <span style={{ fontSize: 7 }}>{suit}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })}
+          </div>
+          
+          <div className="flex gap-2 mt-4">
+            <button
+              onClick={analyzeHand}
+              disabled={analyzerCards.length !== 5}
+              className="btn btn-primary flex-1"
+            >
+              ANALYZE
+            </button>
+            <button
+              onClick={resetAnalyzer}
+              className="btn btn-game"
+            >
+              RESET
+            </button>
+          </div>
+          
+          {strategy && (
+            <div className="mt-4 bg-black/40 p-4 rounded-lg backdrop-blur">
+              <div className="text-center font-bold text-yellow-400 mb-2">
+                STRATEGY RECOMMENDATION
+              </div>
+              <div className="text-center mb-2">
+                <span className="text-lg font-bold text-green-400">
+                  Expected Value: {strategy.ev.toFixed(2)}
+                </span>
+              </div>
+              <div className="text-center text-sm">
+                {strategy.heldIndices.length === 0 ? (
+                  <span className="text-red-400">Discard all cards</span>
+                ) : strategy.heldIndices.length === 5 ? (
+                  <span className="text-green-400">Hold all cards</span>
+                ) : (
+                  <span className="text-blue-400">
+                    Hold cards: {strategy.heldIndices.map(i => i + 1).join(', ')}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </>
+    )}
+    
+    {/* Pay Table Modal - Available in both Play and Analyzer modes */}
+    {showPayTable && (
+      <div 
+        onClick={() => setShowPayTable(false)}
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0,0,0,0.85)',
+          backdropFilter: 'blur(8px)',
+          zIndex: 1000,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '1rem',
+        }}
+      >
+        <div
+          onClick={e => e.stopPropagation()}
+          style={{
+            background: 'linear-gradient(135deg, rgba(15,12,41,0.98), rgba(48,43,99,0.98))',
+            borderRadius: 16,
+            padding: '1.5rem',
+            maxWidth: 500,
+            width: '100%',
+            maxHeight: '80vh',
+            overflowY: 'auto',
+            border: '2px solid rgba(255,215,0,0.3)',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+          }}
+        >
+          <div style={{textAlign:'center',marginBottom:'1rem'}}>
+            <h3 style={{color:'#FFD700',fontSize:'1.25rem',fontWeight:800,marginBottom:'0.25rem'}}>
+              {gameType}
+            </h3>
+            <div style={{color:'rgba(255,255,255,0.6)',fontSize:'0.875rem'}}>
+              {payTableVariant} Pay Table
+            </div>
+          </div>
+          
+          <div style={{
+            background: 'rgba(0,0,0,0.4)',
+            borderRadius: 12,
+            padding: '0.75rem',
+          }}>
+            {/* Header Row */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr auto auto',
+              gap: '0.75rem',
+              padding: '0.5rem',
+              borderBottom: '2px solid rgba(255,215,0,0.3)',
+              fontSize: '0.75rem',
+              fontWeight: 700,
+              color: '#FFD700',
+              marginBottom: '0.25rem',
+            }}>
+              <span>HAND</span>
+              <span style={{textAlign:'right'}}>PAYOUT</span>
+              <span style={{textAlign:'right'}}>ULT X</span>
+            </div>
+            
+            {Object.entries(currentPayTable).map(([hand, payout]) => {
+              // Get Ultimate X multiplier from mapping
+              const ultXMultiplier = ULTIMATE_X_MULTIPLIERS[gameType]?.[payTableVariant]?.[hand];
+              const ultX = ultXMultiplier ? `${ultXMultiplier}X` : '—';
+              
+              return (
+                <div 
+                  key={hand}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr auto auto',
+                    gap: '0.75rem',
+                    padding: '0.5rem',
+                    borderBottom: '1px solid rgba(255,255,255,0.1)',
+                    fontSize: '0.875rem',
+                  }}
+                >
+                  <span style={{color:'rgba(255,255,255,0.9)'}}>{hand}</span>
+                  <span style={{color:'#FFD700',fontWeight:700,textAlign:'right'}}>{payout}</span>
+                  <span style={{color:ultX !== '—' ? '#FF6B6B' : 'rgba(255,255,255,0.3)',fontWeight:700,textAlign:'right',minWidth:36}}>{ultX}</span>
+                </div>
+              );
+            })}
+          </div>
+          
+          <div style={{textAlign:'center',marginTop:'1rem',fontSize:'0.75rem',color:'rgba(255,255,255,0.5)'}}>
+            Payouts shown for 1 coin • 5 coin bet multiplies by 5
+          </div>
+          
+          <button
+            onClick={() => setShowPayTable(false)}
+            style={{
+              width: '100%',
+              marginTop: '1rem',
+              padding: '0.75rem',
+              background: 'linear-gradient(135deg, #8B5CF6, #6366F1)',
+              color: 'white',
+              border: 'none',
+              borderRadius: 12,
+              fontWeight: 700,
+              fontSize: '0.875rem',
+              cursor: 'pointer',
+            }}
+          >
+            CLOSE
+          </button>
+        </div>
+      </div>
+    )}
+    
+  </div>
+</div>
+```
+
+);
+}
+
+```
+// Render
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<UltimateXPoker />);
+```
+
+  </script>
+</body>
+</html>
