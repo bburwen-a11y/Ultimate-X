@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>React Test</title>
+<style>
+body{background:#1a1a2e;color:#fff;font-family:system-ui;padding:20px}
+.status{padding:20px;margin:10px 0;border-radius:8px;font-size:18px}
+.good{background:#16a34a}.bad{background:#dc2626}
+</style>
+</head>
+<body>
+<h1>React Loading Test</h1>
+<div id="status"></div>
+<div id="root"></div>
+
+<script>
+// Test 1: Can we load scripts?
+document.getElementById('status').innerHTML = '<div class="status good">✓ JavaScript is running</div>';
+
+// Test 2: Try to load React
+const reactScript = document.createElement('script');
+reactScript.src = 'https://unpkg.com/react@18/umd/react.production.min.js';
+reactScript.crossOrigin = 'anonymous';
+reactScript.onload = function() {
+  document.getElementById('status').innerHTML += '<div class="status good">✓ React loaded successfully</div>';
+  
+  // Test 3: Try to load ReactDOM
+  const reactDOMScript = document.createElement('script');
+  reactDOMScript.src = 'https://unpkg.com/react-dom@18/umd/react-dom.production.min.js';
+  reactDOMScript.crossOrigin = 'anonymous';
+  reactDOMScript.onload = function() {
+    document.getElementById('status').innerHTML += '<div class="status good">✓ ReactDOM loaded successfully</div>';
+    
+    // Test 4: Try to load Babel
+    const babelScript = document.createElement('script');
+    babelScript.src = 'https://unpkg.com/@babel/standalone/babel.min.js';
+    babelScript.onload = function() {
+      document.getElementById('status').innerHTML += '<div class="status good">✓ Babel loaded successfully</div>';
+      
+      // Test 5: Try to run React code
+      setTimeout(function() {
+        const testScript = document.createElement('script');
+        testScript.type = 'text/babel';
+        testScript.text = `
+          const { useState } = React;
+          function Test() {
+            const [count, setCount] = useState(0);
+            return (
+              <div style={{padding:'20px',background:'#16a34a',borderRadius:'8px',margin:'10px 0'}}>
+                <h2>✓ React is working!</h2>
+                <button onClick={() => setCount(count+1)} style={{padding:'10px 20px',fontSize:'18px',cursor:'pointer'}}>
+                  Clicked {count} times
+                </button>
+              </div>
+            );
+          }
+          ReactDOM.createRoot(document.getElementById('root')).render(<Test />);
+        `;
+        document.body.appendChild(testScript);
+      }, 500);
+    };
+    babelScript.onerror = function() {
+      document.getElementById('status').innerHTML += '<div class="status bad">✗ Babel failed to load</div>';
+    };
+    document.head.appendChild(babelScript);
+  };
+  reactDOMScript.onerror = function() {
+    document.getElementById('status').innerHTML += '<div class="status bad">✗ ReactDOM failed to load</div>';
+  };
+  document.head.appendChild(reactDOMScript);
+};
+reactScript.onerror = function() {
+  document.getElementById('status').innerHTML += '<div class="status bad">✗ React failed to load - CDN may be blocked</div>';
+};
+document.head.appendChild(reactScript);
+</script>
+
+</body>
+</html>
