@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Poker Test</title>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+body{background:#1a1a2e;color:#fff;padding:20px;font-family:system-ui}
+button{padding:15px;background:#9333ea;color:#fff;border:none;border-radius:8px;font-size:18px;cursor:pointer}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div id="err" style="color:red;margin-top:20px"></div>
+<script>
+window.onerror=function(m,u,l){document.getElementById('err').textContent='ERROR: '+m+' Line:'+l;return false;};
+</script>
+<script type="text/babel">
+const{useState}=React;
+const testData=['A','B','C'];
+function App(){
+const[msg,setMsg]=useState('Click button to test');
+return <div style={{textAlign:'center',marginTop:'50px'}}>
+<h1>Poker Test</h1>
+<p style={{fontSize:'24px',margin:'20px'}}>{msg}</p>
+<button onClick={()=>setMsg('React works!')}>Test React</button>
+<p>{testData.join(',')}</p>
+</div>;
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
