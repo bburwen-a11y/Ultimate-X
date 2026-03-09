@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Poker Babel Fix</title>
+</head>
+<body>
+<div id="root"></div>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script>
+window.onerror=function(m,u,l,c,e){alert('ERROR: '+m+' Line:'+l);return false;};
+setTimeout(function(){
+if(typeof Babel==='undefined'){alert('Babel failed to load!');return;}
+const code=document.getElementById('game-code').textContent;
+try{
+const transformed=Babel.transform(code,{presets:['react']}).code;
+const script=document.createElement('script');
+script.textContent=transformed;
+document.body.appendChild(script);
+}catch(err){
+alert('Babel transform error: '+err.message);
+}
+},100);
+</script>
+<script id="game-code" type="text/template">
+const{useState}=React;
+function App(){
+const[msg,setMsg]=useState('Test');
+return React.createElement('div',{style:{textAlign:'center',padding:'50px',color:'#fff',background:'#1a1a2e',minHeight:'100vh'}},
+React.createElement('h1',{style:{color:'#fbbf24'}},'Babel Fix Test'),
+React.createElement('p',{style:{fontSize:'24px',margin:'20px'}},msg),
+React.createElement('button',{onClick:()=>setMsg('It works!'),style:{padding:'15px',background:'#9333ea',color:'#fff',border:'none',borderRadius:'8px',cursor:'pointer'}},'Click Me')
+);
+}
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+</script>
+</body>
+</html>
