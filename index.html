@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Ultimate X Poker</title>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #1a1a2e; }
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.7}}
+.ap{animation:pulse 2s ease-in-out infinite}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { useState, useCallback, useRef, useEffect, useMemo } = React;
+
+const SUITS = [‘♠’,‘♥’,‘♦’,‘♣’];
+const RANKS = [‘2’,‘3’,‘4’,‘5’,‘6’,‘7’,‘8’,‘9’,‘T’,‘J’,‘Q’,‘K’,‘A’];
+const RANK_VALUES = {‘2’:2,‘3’:3,‘4’:4,‘5’:5,‘6’:6,‘7’:7,‘8’:8,‘9’:9,‘T’:10,‘J’:11,‘Q’:12,‘K’:13,‘A’:14};
+
+const createDeck = () => {
+const deck = [];
+for (const suit of SUITS) for (const rank of RANKS) deck.push({ rank, suit, id: `${rank}${suit}` });
+return deck;
+};
+
+const shuffleDeck = (deck) => {
+const d = […deck];
+for (let i = d.length - 1; i > 0; i–) {
+const j = Math.floor(Math.random() * (i + 1));
+[d[i], d[j]] = [d[j], d[i]];
+}
+return d;
+};
+
+const PAY_TABLES = {
+‘Jacks or Better’: {
+‘8/5’: {‘Royal Flush’:800,‘Straight Flush’:50,‘Four of a Kind’:25,‘Full House’:8,‘Flush’:5,‘Straight’:4,‘Three of a Kind’:3,‘Two Pair’:2,‘Jacks or Better’:1},
+‘7/5’: {‘Royal Flush’:800,‘Straight Flush’:50,‘Four of a Kind’:25,‘Full House’:7,‘Flush’:5,‘Straight’:4,‘Three of a Kind’:3,‘Two Pair’:2,‘Jacks or Better’:1},
+‘6/5’: {‘Royal Flush’:800,‘Straight Flush’:50,‘Four of a Kind’:25,‘Full House’:6,‘Flush’:5,‘Straight’:4,‘Three of a Kind’:3,‘Two Pair’:2,‘Jacks or Better’:1},
+},
+‘Bonus Poker’: {
+‘8/5’: {‘Royal Flush’:800,‘Straight Flush’:50,‘Four Aces’:80,‘Four 2-4’:40,‘Four 5-K’:25,‘Full House’:8,‘Flush’:5,‘Straight’:4,‘Three of a Kind’:3,‘Two Pair’:2,‘Jacks or Better’:1},
+‘7/5’: {‘Royal Flush’:800,‘Straight Flush’:50,‘Four Aces’:80,‘Four 2-4’:40,‘Four 5-K’:25,‘Full House’:7,‘Flush’:5,‘Straight’:4,‘Three of a Kind’:3,‘Two Pair’:2,‘Jacks or Better’:1},
+‘6/5’: {‘Royal Flush’:800,‘Straight Flush’:50,‘Four Aces’:80,‘Four 2-4’:40,‘Four 5-K’:25,‘Full House’:6,‘Flush’:5,‘Straight’:4,‘Three of a Kind’:3,‘Two Pair’:2,‘Jacks or Better’:1},
+},
+‘Bonus Poker Deluxe’: {
+‘8/5’: {‘Royal Flush’:800,‘Straight Flush’:50,‘Four of a Kind’:80,‘Full House’:8,‘Flush’:5,‘Straight’:4,‘Three of a Kind’:3,‘Two Pair’:1,‘Jacks or Better’:1},
+‘7/5’: {‘Royal Flush’:800,‘Straight Flush’:50,‘Four of a Kind’:80,‘Full House’:7,‘Flush’:5,‘Straight’:4,‘Three of a Kind’:3,‘Two Pair’:1,‘Jacks or Better’:1},
+‘6/5’: {‘Royal Flush’:800,‘Straight Flush’:50,‘Four of a Kind’:80,‘Full House’:6,‘Flush’:5,‘Straight’:4,‘Three of a Kind’:3,‘Two Pair’:1,‘Jacks or Better’:1},
+},
+‘Double Double Bonus’: {
+‘8/5’: {‘Royal Flush’:800,‘Straight Flush’:50,‘Four Aces + 2-4’:400,‘Four 2-4 + A-4’:160,‘Four Aces’:160,‘Four 2-4’:80,‘Four 5-K’:50,‘Full House’:8,‘Flush’:5,‘Straight’:4,‘Three of a Kind’:3,‘Two Pair’:1,‘Jacks or Better’:1},
+‘7/5’: {‘Royal Flush’:800,‘Straight Flush’:50,‘Four Aces + 2-4’:400,‘Four 2-4 + A-4’:160,‘Four Aces’:160,‘Four 2-4’:80,‘Four 5-K’:50,‘Full House’:7,‘Flush’:5,‘Straight’:4,‘Three of a Kind’:3,‘Two Pair’:1,‘Jacks or Better’:1},
+‘6/5’: {‘Royal Flush’:800,‘Straight Flush’:50,‘Four Aces + 2-4’:400,‘Four 2-4 + A-4’:160,‘Four Aces’:160,‘Four 2-4’:80,‘Four 5-K’:50,‘Full House’:6,‘Flush’:5,‘Straight’:4,‘Three of a Kind’:3,‘Two Pair’:1,‘Jacks or Better’:1},
+},
+‘Triple Double Bonus’: {
+‘9/5’: {‘Royal Flush’:800,‘Straight Flush’:50,‘Four Aces + 2-3-4’:800,‘Four 2-3-4 + A-2-3-4’:400,‘Four Aces’:160,‘Four 2-3-4’:80,‘Four 5-K’:50,‘Full House’:9,‘Flush’:5,‘Straight’:4,‘Three of a Kind’:2,‘Two Pair’:1,‘Jacks or Better’:1},
+‘8/5’: {‘Royal Flush’:800,‘Straight Flush’:50,‘Four Aces + 2-3-4’:800,‘Four 2-3-4 + A-2-3-4’:400,‘Four Aces’:160,‘Four 2-3-4’:80,‘Four 5-K’:50,‘Full House’:8,‘Flush’:5,‘Straight’:4,‘Three of a Kind’:2,‘Two Pair’:1,‘Jacks or Better’:1},
+‘7/5’: {‘Royal Flush’:800,‘Straight Flush’:50,‘Four Aces + 2-3-4’:800,‘Four 2-3-4 + A-2-3-4’:400,‘Four Aces’:160,‘Four 2-3-4’:80,‘Four 5-K’:50,‘Full House’:7,‘Flush’:5,‘Straight’:4,‘Three of a Kind’:2,‘Two Pair’:1,‘Jacks or Better’:1},
+},
+‘Double Bonus’: {
+‘9-6-5’: {‘Royal Flush’:800,‘Straight Flush’:50,‘Four Aces’:160,‘Four 2-4’:80,‘Four 5-K’:50,‘Full House’:9,‘Flush’:6,‘Straight’:5,‘Three of a Kind’:3,‘Two Pair’:1,‘Jacks or Better’:1},
+‘9-6-4’: {‘Royal Flush’:800,‘Straight Flush’:50,‘Four Aces’:160,‘Four 2-4’:80,‘Four 5-K’:50,‘Full House’:9,‘Flush’:6,‘Straight’:4,‘Three of a Kind’:3,‘Two Pair’:1,‘Jacks or Better’:1},
+‘9-5-4’: {‘Royal Flush’:800,‘Straight Flush’:50,‘Four Aces’:160,‘Four 2-4’:80,‘Four 5-K’:50,‘Full House’:9,‘Flush’:5,‘Straight’:4,‘Three of a Kind’:3,‘Two Pair’:1,‘Jacks or Better’:1},
+‘8-5-4’: {‘Royal Flush’:800,‘Straight Flush’:50,‘Four Aces’:160,‘Four 2-4’:80,‘Four 5-K’:50,‘Full House’:8,‘Flush’:5,‘Straight’:4,‘Three of a Kind’:3,‘Two Pair’:1,‘Jacks or Better’:1},
+},
+‘Deuces Wild’: {
+‘25/16/13’: {‘Natural Royal’:800,‘Four Deuces’:200,‘Wild Royal’:25,‘Five of a Kind’:16,‘Straight Flush’:13,‘Four of a Kind’:4,‘Full House’:3,‘Flush’:2,‘Straight’:2,‘Three of a Kind’:1},
+‘25/15/10’: {‘Natural Royal’:800,‘Four Deuces’:200,‘Wild Royal’:25,‘Five of a Kind’:15,‘Straight Flush’:10,‘Four of a Kind’:4,‘Full House’:3,‘Flush’:2,‘Straight’:2,‘Three of a Kind’:1},
+‘20/12/10’: {‘Natural Royal’:800,‘Four Deuces’:200,‘Wild Royal’:20,‘Five of a Kind’:12,‘Straight Flush’:10,‘Four of a Kind’:4,‘Full House’:3,‘Flush’:2,‘Straight’:2,‘Three of a Kind’:1},
+‘25/16/10’: {‘Natural Royal’:800,‘Four Deuces’:200,‘Wild Royal’:25,‘Five of a Kind’:16,‘Straight Flush’:10,‘Four of a Kind’:4,‘Full House’:3,‘Flush’:2,‘Straight’:2,‘Three of a Kind’:1},
+‘20/10/8’:  {‘Natural Royal’:800,‘Four Deuces’:200,‘Wild Royal’:20,‘Five of a Kind’:10,‘Straight Flush’:8,‘Four of a Kind’:4,‘Full House’:3,‘Flush’:2,‘Straight’:2,‘Three of a Kind’:1},
+},
+‘Deuces Bonus’: {
+‘12/3’:    {‘Natural Royal’:800,‘Four Deuces + Ace’:400,‘Four Deuces’:200,‘Wild Royal’:25,‘Five Aces’:80,‘Five 3-5’:40,‘Five 6-K’:20,‘Straight Flush’:12,‘Four of a Kind’:4,‘Full House’:3,‘Flush’:2,‘Straight’:2,‘Three of a Kind’:1},
+‘12/3/8’:  {‘Natural Royal’:800,‘Four Deuces + Ace’:400,‘Four Deuces’:200,‘Wild Royal’:25,‘Five Aces’:80,‘Five 3-5’:40,‘Five 6-K’:20,‘Straight Flush’:12,‘Four of a Kind’:4,‘Full House’:3,‘Flush’:3,‘Straight’:2,‘Three of a Kind’:1},
+‘12/3-6’:  {‘Natural Royal’:800,‘Four Deuces + Ace’:400,‘Four Deuces’:200,‘Wild Royal’:25,‘Five Aces’:80,‘Five 3-5’:40,‘Five 6-K’:20,‘Straight Flush’:12,‘Four of a Kind’:4,‘Full House’:3,‘Flush’:2,‘Straight’:2,‘Three of a Kind’:1},
+‘10/2’:    {‘Natural Royal’:800,‘Four Deuces + Ace’:400,‘Four Deuces’:200,‘Wild Royal’:25,‘Five Aces’:80,‘Five 3-5’:40,‘Five 6-K’:20,‘Straight Flush’:10,‘Four of a Kind’:4,‘Full House’:3,‘Flush’:2,‘Straight’:2,‘Three of a Kind’:1},
+‘20-12-4’: {‘Natural Royal’:800,‘Four Deuces + Ace’:400,‘Four Deuces’:200,‘Wild Royal’:25,‘Five Aces’:80,‘Five 3-5’:40,‘Five 6-K’:20,‘Straight Flush’:20,‘Four of a Kind’:4,‘Full House’:4,‘Flush’:3,‘Straight’:2,‘Three of a Kind’:1},
+},
+};
+
+const ULTIMATE_X_MULTIPLIERS = {
+‘Jacks or Better’: {
+‘8/5’: {‘Royal Flush’:2,‘Straight Flush’:2,‘Four of a Kind’:2,‘Full House’:12,‘Flush’:11,‘Straight’:7,‘Three of a Kind’:4,‘Two Pair’:3,‘Jacks or Better’:2},
+‘7/5’: {‘Royal Flush’:2,‘Straight Flush’:2,‘Four of a Kind’:2,‘Full House’:12,‘Flush’:11,‘Straight’:7,‘Three of a Kind’:4,‘Two Pair’:3,‘Jacks or Better’:2},
+‘6/5’: {‘Royal Flush’:2,‘Straight Flush’:2,‘Four of a Kind’:2,‘Full House’:12,‘Flush’:11,‘Straight’:7,‘Three of a Kind’:4,‘Two Pair’:3,‘Jacks or Better’:2},
+},
+‘Bonus Poker’: {
+‘8/5’: {‘Royal Flush’:12,‘Straight Flush’:11,‘Four Aces’:8,‘Four 2-4’:8,‘Four 5-K’:8,‘Full House’:5,‘Flush’:4,‘Straight’:3,‘Three of a Kind’:2,‘Two Pair’:2,‘Jacks or Better’:2},
+‘7/5’: {‘Royal Flush’:12,‘Straight Flush’:11,‘Four Aces’:7,‘Four 2-4’:7,‘Four 5-K’:7,‘Full House’:5,‘Flush’:4,‘Straight’:3,‘Three of a Kind’:2,‘Two Pair’:2,‘Jacks or Better’:2},
+‘6/5’: {‘Royal Flush’:2,‘Straight Flush’:2,‘Four Aces’:2,‘Four 2-4’:2,‘Four 5-K’:2,‘Full House’:12,‘Flush’:10,‘Straight’:8,‘Three of a Kind’:4,‘Two Pair’:3,‘Jacks or Better’:2},
+},
+‘Bonus Poker Deluxe’: {
+‘8/5’: {‘Royal Flush’:2,‘Straight Flush’:2,‘Four of a Kind’:2,‘Full House’:12,‘Flush’:11,‘Straight’:7,‘Three of a Kind’:4,‘Two Pair’:3,‘Jacks or Better’:2},
+‘7/5’: {‘Royal Flush’:2,‘Straight Flush’:2,‘Four of a Kind’:2,‘Full House’:12,‘Flush’:11,‘Straight’:7,‘Three of a Kind’:4,‘Two Pair’:3,‘Jacks or Better’:2},
+‘6/5’: {‘Royal Flush’:2,‘Straight Flush’:2,‘Four of a Kind’:2,‘Full House’:12,‘Flush’:11,‘Straight’:7,‘Three of a Kind’:4,‘Two Pair’:3,‘Jacks or Better’:2},
+},
+‘Double Double Bonus’: {
+‘8/5’: {‘Royal Flush’:2,‘Straight Flush’:2,‘Four Aces + 2-4’:2,‘Four 2-4 + A-4’:2,‘Four Aces’:2,‘Four 2-4’:2,‘Four 5-K’:2,‘Full House’:12,‘Flush’:10,‘Straight’:8,‘Three of a Kind’:4,‘Two Pair’:3,‘Jacks or Better’:2},
+‘7/5’: {‘Royal Flush’:2,‘Straight Flush’:2,‘Four Aces + 2-4’:2,‘Four 2-4 + A-4’:2,‘Four Aces’:2,‘Four 2-4’:2,‘Four 5-K’:2,‘Full House’:12,‘Flush’:10,‘Straight’:8,‘Three of a Kind’:4,‘Two Pair’:3,‘Jacks or Better’:2},
+‘6/5’: {‘Royal Flush’:2,‘Straight Flush’:2,‘Four Aces + 2-4’:2,‘Four 2-4 + A-4’:2,‘Four Aces’:2,‘Four 2-4’:2,‘Four 5-K’:2,‘Full House’:12,‘Flush’:10,‘Straight’:8,‘Three of a Kind’:4,‘Two Pair’:3,‘Jacks or Better’:2},
+},
+‘Triple Double Bonus’: {
+‘9/5’: {‘Royal Flush’:2,‘Straight Flush’:2,‘Four Aces + 2-3-4’:2,‘Four 2-3-4 + A-2-3-4’:2,‘Four Aces’:2,‘Four 2-3-4’:2,‘Four 5-K’:2,‘Full House’:12,‘Flush’:10,‘Straight’:8,‘Three of a Kind’:4,‘Two Pair’:3,‘Jacks or Better’:2},
+‘8/5’: {‘Royal Flush’:2,‘Straight Flush’:2,‘Four Aces + 2-3-4’:2,‘Four 2-3-4 + A-2-3-4’:2,‘Four Aces’:2,‘Four 2-3-4’:2,‘Four 5-K’:2,‘Full House’:12,‘Flush’:10,‘Straight’:8,‘Three of a Kind’:4,‘Two Pair’:3,‘Jacks or Better’:2},
+‘7/5’: {‘Royal Flush’:2,‘Straight Flush’:2,‘Four Aces + 2-3-4’:2,‘Four 2-3-4 + A-2-3-4’:2,‘Four Aces’:2,‘Four 2-3-4’:2,‘Four 5-K’:2,‘Full House’:12,‘Flush’:10,‘Straight’:8,‘Three of a Kind’:4,‘Two Pair’:3,‘Jacks or Better’:2},
+},
+‘Double Bonus’: {
+‘9-6-5’: {‘Royal Flush’:2,‘Straight Flush’:2,‘Four Aces’:2,‘Four 2-4’:2,‘Four 5-K’:2,‘Full House’:12,‘Flush’:10,‘Straight’:8,‘Three of a Kind’:4,‘Two Pair’:3,‘Jacks or Better’:2},
+‘9-6-4’: {‘Royal Flush’:2,‘Straight Flush’:2,‘Four Aces’:2,‘Four 2-4’:2,‘Four 5-K’:2,‘Full House’:12,‘Flush’:10,‘Straight’:8,‘Three of a Kind’:4,‘Two Pair’:3,‘Jacks or Better’:2},
+‘9-5-4’: {‘Royal Flush’:2,‘Straight Flush’:2,‘Four Aces’:2,‘Four 2-4’:2,‘Four 5-K’:2,‘Full House’:12,‘Flush’:10,‘Straight’:8,‘Three of a Kind’:4,‘Two Pair’:3,‘Jacks or Better’:2},
+‘8-5-4’: {‘Royal Flush’:2,‘Straight Flush’:2,‘Four Aces’:2,‘Four 2-4’:2,‘Four 5-K’:2,‘Full House’:12,‘Flush’:10,‘Straight’:8,‘Three of a Kind’:4,‘Two Pair’:3,‘Jacks or Better’:2},
+},
+‘Deuces Wild’: {
+‘25/16/13’: {‘Natural Royal’:2,‘Four Deuces’:2,‘Wild Royal’:2,‘Five of a Kind’:2,‘Straight Flush’:12,‘Four of a Kind’:7,‘Full House’:5,‘Flush’:5,‘Straight’:3,‘Three of a Kind’:2},
+‘25/15/10’: {‘Natural Royal’:2,‘Four Deuces’:2,‘Wild Royal’:2,‘Five of a Kind’:2,‘Straight Flush’:12,‘Four of a Kind’:7,‘Full House’:5,‘Flush’:5,‘Straight’:3,‘Three of a Kind’:2},
+‘20/12/10’: {‘Natural Royal’:2,‘Four Deuces’:2,‘Wild Royal’:2,‘Five of a Kind’:2,‘Straight Flush’:12,‘Four of a Kind’:7,‘Full House’:5,‘Flush’:5,‘Straight’:3,‘Three of a Kind’:2},
+‘25/16/10’: {‘Natural Royal’:2,‘Four Deuces’:2,‘Wild Royal’:2,‘Five of a Kind’:2,‘Straight Flush’:12,‘Four of a Kind’:7,‘Full House’:5,‘Flush’:5,‘Straight’:3,‘Three of a Kind’:2},
+‘20/10/8’:  {‘Natural Royal’:2,‘Four Deuces’:2,‘Wild Royal’:2,‘Five of a Kind’:2,‘Straight Flush’:12,‘Four of a Kind’:7,‘Full House’:5,‘Flush’:5,‘Straight’:3,‘Three of a Kind’:2},
+},
+‘Deuces Bonus’: {
+‘12/3’:    {‘Natural Royal’:2,‘Four Deuces + Ace’:2,‘Four Deuces’:2,‘Wild Royal’:2,‘Five Aces’:2,‘Five 3-5’:2,‘Five 6-K’:2,‘Straight Flush’:12,‘Four of a Kind’:7,‘Full House’:5,‘Flush’:5,‘Straight’:3,‘Three of a Kind’:2},
+‘12/3/8’:  {‘Natural Royal’:2,‘Four Deuces + Ace’:2,‘Four Deuces’:2,‘Wild Royal’:2,‘Five Aces’:2,‘Five 3-5’:2,‘Five 6-K’:2,‘Straight Flush’:12,‘Four of a Kind’:7,‘Full House’:5,‘Flush’:5,‘Straight’:3,‘Three of a Kind’:2},
+‘12/3-6’:  {‘Natural Royal’:2,‘Four Deuces + Ace’:2,‘Four Deuces’:2,‘Wild Royal’:2,‘Five Aces’:2,‘Five 3-5’:2,‘Five 6-K’:2,‘Straight Flush’:12,‘Four of a Kind’:7,‘Full House’:5,‘Flush’:5,‘Straight’:3,‘Three of a Kind’:2},
+‘10/2’:    {‘Natural Royal’:2,‘Four Deuces + Ace’:2,‘Four Deuces’:2,‘Wild Royal’:2,‘Five Aces’:2,‘Five 3-5’:2,‘Five 6-K’:2,‘Straight Flush’:12,‘Four of a Kind’:7,‘Full House’:5,‘Flush’:5,‘Straight’:3,‘Three of a Kind’:2},
+‘20-12-4’: {‘Natural Royal’:2,‘Four Deuces + Ace’:2,‘Four Deuces’:2,‘Wild Royal’:2,‘Five Aces’:2,‘Five 3-5’:2,‘Five 6-K’:2,‘Straight Flush’:12,‘Four of a Kind’:7,‘Full House’:6,‘Flush’:4,‘Straight’:3,‘Three of a Kind’:2},
+},
+};
+
+const evaluateHand = (cards, gameType, payTable) => {
+if (cards.length !== 5) return { hand: ‘Incomplete’, payout: 0 };
+const isDeuces = gameType === ‘Deuces Wild’ || gameType === ‘Deuces Bonus’;
+const deuceCount = isDeuces ? cards.filter(c => c.rank === ‘2’).length : 0;
+const rankCounts = {}, suitCounts = {}, rankValues = [];
+cards.forEach(card => {
+if (isDeuces && card.rank === ‘2’) return;
+rankCounts[card.rank] = (rankCounts[card.rank] || 0) + 1;
+suitCounts[card.suit] = (suitCounts[card.suit] || 0) + 1;
+rankValues.push(RANK_VALUES[card.rank]);
+});
+const counts = Object.values(rankCounts).sort((a, b) => b - a);
+const isFlush = Object.values(suitCounts).some(c => c + deuceCount >= 5);
+rankValues.sort((a, b) => a - b);
+let isStraight = false;
+if (deuceCount === 0) {
+const u = […new Set(rankValues)].sort((a,b)=>a-b);
+if (u.length === 5) {
+if (u[4]-u[0] === 4) isStraight = true;
+if (u[0]===2&&u[1]===3&&u[2]===4&&u[3]===5&&u[4]===14) isStraight = true;
+}
+} else {
+const nonD = rankValues.filter(v => v !== 2);
+const uniq = […new Set(nonD)].sort((a,b)=>a-b);
+if (uniq.length + deuceCount === 5) {
+const gaps = [];
+for (let i = 1; i < uniq.length; i++) gaps.push(uniq[i]-uniq[i-1]-1);
+const totalGaps = gaps.reduce((a,b)=>a+b,0);
+if (uniq[0]===14 || uniq[uniq.length-1]===14) {
+if (uniq.some(v=>v<=5) && totalGaps<=deuceCount) isStraight=true;
+}
+if (!isStraight) {
+const span = uniq[uniq.length-1]-uniq[0];
+if (span<=4 && totalGaps<=deuceCount) isStraight=true;
+}
+}
+}
+const maxCount = (counts[0]||0) + deuceCount;
+const secondCount = counts[1]||0;
+const hasNaturalRoyal = !isDeuces && isFlush && isStraight && rankValues.includes(14) && rankValues.includes(13);
+let hasWildRoyal = false;
+if (isDeuces && deuceCount>0 && isFlush && isStraight) {
+const royalRanks=[10,11,12,13,14];
+const nonD = rankValues.filter(v=>v!==2);
+if (nonD.every(v=>royalRanks.includes(v)) && nonD.length+deuceCount===5) hasWildRoyal=true;
+}
+if (isDeuces) {
+if (deuceCount===4) {
+const k=cards.find(c=>c.rank!==‘2’);
+if (k&&k.rank===‘A’) return {hand:‘Four Deuces + Ace’,payout:payTable[‘Four Deuces + Ace’]||0};
+return {hand:‘Four Deuces’,payout:payTable[‘Four Deuces’]||0};
+}
+if (hasNaturalRoyal&&deuceCount===0) return {hand:‘Natural Royal’,payout:payTable[‘Natural Royal’]||0};
+if (hasWildRoyal) return {hand:‘Wild Royal’,payout:payTable[‘Wild Royal’]||0};
+if (maxCount===5) {
+const r=Object.keys(rankCounts).find(r=>rankCounts[r]+deuceCount===5);
+if (r===‘A’) return {hand:‘Five Aces’,payout:payTable[‘Five Aces’]||0};
+if ([‘3’,‘4’,‘5’].includes(r)) return {hand:‘Five 3-5’,payout:payTable[‘Five 3-5’]||0};
+return {hand:‘Five 6-K’,payout:payTable[‘Five 6-K’]||0};
+}
+if (isFlush&&isStraight) return {hand:‘Straight Flush’,payout:payTable[‘Straight Flush’]||0};
+if (maxCount===4) return {hand:‘Four of a Kind’,payout:payTable[‘Four of a Kind’]||0};
+if (maxCount===3&&secondCount===2) return {hand:‘Full House’,payout:payTable[‘Full House’]||0};
+if (isFlush) return {hand:‘Flush’,payout:payTable[‘Flush’]||0};
+if (isStraight) return {hand:‘Straight’,payout:payTable[‘Straight’]||0};
+if (maxCount===3) return {hand:‘Three of a Kind’,payout:payTable[‘Three of a Kind’]||0};
+return {hand:‘Nothing’,payout:0};
+}
+if (hasNaturalRoyal) return {hand:‘Royal Flush’,payout:payTable[‘Royal Flush’]||0};
+if (isFlush&&isStraight) return {hand:‘Straight Flush’,payout:payTable[‘Straight Flush’]||0};
+if (maxCount===4) {
+const qr=Object.keys(rankCounts).find(r=>rankCounts[r]===4);
+const kicker=cards.find(c=>c.rank!==qr);
+if (gameType===‘Triple Double Bonus’) {
+if (qr===‘A’&&kicker&&[‘2’,‘3’,‘4’].includes(kicker.rank)) return {hand:‘Four Aces + 2-3-4’,payout:payTable[‘Four Aces + 2-3-4’]||0};
+if ([‘2’,‘3’,‘4’].includes(qr)&&kicker&&(kicker.rank===‘A’||[‘2’,‘3’,‘4’].includes(kicker.rank))) return {hand:‘Four 2-3-4 + A-2-3-4’,payout:payTable[‘Four 2-3-4 + A-2-3-4’]||0};
+if (qr===‘A’) return {hand:‘Four Aces’,payout:payTable[‘Four Aces’]||0};
+if ([‘2’,‘3’,‘4’].includes(qr)) return {hand:‘Four 2-3-4’,payout:payTable[‘Four 2-3-4’]||0};
+return {hand:‘Four 5-K’,payout:payTable[‘Four 5-K’]||0};
+}
+if (gameType===‘Double Double Bonus’) {
+if (qr===‘A’&&kicker&&[‘2’,‘3’,‘4’].includes(kicker.rank)) return {hand:‘Four Aces + 2-4’,payout:payTable[‘Four Aces + 2-4’]||0};
+if ([‘2’,‘3’,‘4’].includes(qr)&&kicker&&(kicker.rank===‘A’||[‘2’,‘3’,‘4’].includes(kicker.rank))) return {hand:‘Four 2-4 + A-4’,payout:payTable[‘Four 2-4 + A-4’]||0};
+if (qr===‘A’) return {hand:‘Four Aces’,payout:payTable[‘Four Aces’]||0};
+if ([‘2’,‘3’,‘4’].includes(qr)) return {hand:‘Four 2-4’,payout:payTable[‘Four 2-4’]||0};
+return {hand:‘Four 5-K’,payout:payTable[‘Four 5-K’]||0};
+}
+if (gameType===‘Bonus Poker’||gameType===‘Double Bonus’) {
+if (qr===‘A’) return {hand:‘Four Aces’,payout:payTable[‘Four Aces’]||0};
+if ([‘2’,‘3’,‘4’].includes(qr)) return {hand:‘Four 2-4’,payout:payTable[‘Four 2-4’]||0};
+return {hand:‘Four 5-K’,payout:payTable[‘Four 5-K’]||0};
+}
+return {hand:‘Four of a Kind’,payout:payTable[‘Four of a Kind’]||0};
+}
+if (maxCount===3&&secondCount===2) return {hand:‘Full House’,payout:payTable[‘Full House’]||0};
+if (isFlush) return {hand:‘Flush’,payout:payTable[‘Flush’]||0};
+if (isStraight) return {hand:‘Straight’,payout:payTable[‘Straight’]||0};
+if (maxCount===3) return {hand:‘Three of a Kind’,payout:payTable[‘Three of a Kind’]||0};
+if (maxCount===2&&secondCount===2) return {hand:‘Two Pair’,payout:payTable[‘Two Pair’]||0};
+const pr=Object.keys(rankCounts).find(r=>rankCounts[r]===2);
+if (pr&&[‘J’,‘Q’,‘K’,‘A’].includes(pr)) return {hand:‘Jacks or Better’,payout:payTable[‘Jacks or Better’]||1};
+return {hand:‘Nothing’,payout:0};
+};
+
+const analyzeStrategy = (cards, gameType, payTable, playMode=1) => {
+const ranks = cards.map(c=>c.rank);
+const isDeuces = gameType===‘Deuces Wild’||gameType===‘Deuces Bonus’;
+const deuceCount = isDeuces ? cards.filter(c=>c.rank===‘2’).length : 0;
+const suitCounts={}, rankCounts={};
+cards.forEach((c,i)=>{ if(isDeuces&&c.rank===‘2’) return; suitCounts[c.suit]=(suitCounts[c.suit]||0)+1; });
+ranks.forEach(r=>{ if(isDeuces&&r===‘2’) return; rankCounts[r]=(rankCounts[r]||0)+1; });
+const counts=Object.values(rankCounts).sort((a,b)=>b-a);
+const maxCount=(counts[0]||0)+deuceCount, secondCount=counts[1]||0;
+const isMultiPlay=playMode>1;
+const highCards=cards.filter(c=>[‘J’,‘Q’,‘K’,‘A’].includes(c.rank));
+const highCardIndices=cards.map((c,i)=>[‘J’,‘Q’,‘K’,‘A’].includes(c.rank)?i:-1).filter(i=>i>=0);
+let maxSuitCount=0, maxSuit=null;
+Object.entries(suitCounts).forEach(([s,c])=>{ if(c>maxSuitCount){maxSuitCount=c;maxSuit=s;} });
+const suitedIndices=cards.map((c,i)=>c.suit===maxSuit?i:-1).filter(i=>i>=0);
+const pairRanks=Object.keys(rankCounts).filter(r=>rankCounts[r]===2);
+const rankValues=ranks.map(r=>RANK_VALUES[r]).sort((a,b)=>a-b);
+let isStraight=false;
+if (isDeuces) {
+const nonD=rankValues.filter(v=>v!==2), uniq=[…new Set(nonD)].sort((a,b)=>a-b);
+if (uniq.length+deuceCount>=5) {
+const gaps=[]; for(let i=1;i<uniq.length;i++) gaps.push(uniq[i]-uniq[i-1]-1);
+const tg=gaps.reduce((a,b)=>a+b,0);
+if(uniq[0]===14||uniq[uniq.length-1]===14){ if(uniq.some(v=>v<=5)&&tg<=deuceCount) isStraight=true; }
+if(!isStraight){ const span=uniq[uniq.length-1]-uniq[0]; isStraight=(span<=4&&tg<=deuceCount&&uniq.length+deuceCount===5); }
+}
+} else {
+const isWheel=rankValues[0]===2&&rankValues[4]===14&&rankValues[1]===3&&rankValues[2]===4&&rankValues[3]===5;
+isStraight=isWheel||(rankValues[4]-rankValues[0]===4&&new Set(rankValues).size===5);
+}
+const isFlush=maxSuitCount>=5||(isDeuces&&Object.values(suitCounts).some(c=>c+deuceCount>=5));
+
+if (!isDeuces) {
+if (maxCount>=4) return {heldIndices:[0,1,2,3,4],ev:25};
+if (maxCount===3&&secondCount===2) return {heldIndices:[0,1,2,3,4],ev:9};
+// 4-card royal before flush
+if (maxSuitCount>=4) {
+const sr=cards.filter(c=>c.suit===maxSuit).map(c=>c.rank);
+const rr=[‘T’,‘J’,‘Q’,‘K’,‘A’];
+if (sr.filter(r=>rr.includes(r)).length===4) {
+return {heldIndices:cards.map((c,i)=>c.suit===maxSuit&&rr.includes(c.rank)?i:-1).filter(i=>i>=0),ev:2.3};
+}
+}
+if (isFlush) return {heldIndices:[0,1,2,3,4],ev:6};
+if (isStraight) return {heldIndices:[0,1,2,3,4],ev:4};
+if (maxCount===3) {
+const tr=Object.keys(rankCounts).find(r=>rankCounts[r]===3);
+return {heldIndices:cards.map((c,i)=>c.rank===tr?i:-1).filter(i=>i>=0),ev:3};
+}
+if (pairRanks.length===2) return {heldIndices:cards.map((c,i)=>pairRanks.includes(c.rank)?i:-1).filter(i=>i>=0),ev:2};
+const hp=pairRanks.find(r=>[‘J’,‘Q’,‘K’,‘A’].includes(r));
+if (hp) return {heldIndices:cards.map((c,i)=>c.rank===hp?i:-1).filter(i=>i>=0),ev:0.82};
+if (maxSuitCount===4) return {heldIndices:suitedIndices,ev:0.6};
+// low pair beats 4-card straight
+if (pairRanks.length>0) {
+return {heldIndices:cards.map((c,i)=>c.rank===pairRanks[0]?i:-1).filter(i=>i>=0),ev:isMultiPlay?0.65:0.50};
+}
+// 4-card straight
+const urv=[…new Set(rankValues)].sort((a,b)=>a-b);
+if (urv.length>=4) {
+for (let i=0;i<=urv.length-4;i++) {
+const span=urv[i+3]-urv[i], tv=[urv[i],urv[i+1],urv[i+2],urv[i+3]];
+if (span===3||span===4) {
+const si=[]; const used={};
+cards.forEach((c,idx)=>{ if(tv.includes(RANK_VALUES[c.rank])&&!used[c.rank]){used[c.rank]=true;si.push(idx);} });
+if (si.length===4) {
+if (span===3) return {heldIndices:si,ev:0.53};
+if (si.some(idx=>[‘J’,‘Q’,‘K’,‘A’].includes(cards[idx].rank))) return {heldIndices:si,ev:0.53};
+}
+}
+}
+}
+// 3-card royal
+if (maxSuitCount>=3) {
+const sr=cards.filter(c=>c.suit===maxSuit).map(c=>c.rank), rr=[‘T’,‘J’,‘Q’,‘K’,‘A’];
+if (sr.filter(r=>rr.includes(r)).length>=3) {
+return {heldIndices:cards.map((c,i)=>c.suit===maxSuit&&rr.includes(c.rank)?i:-1).filter(i=>i>=0).slice(0,3),ev:0.52};
+}
+}
+if (highCards.length>=3) {
+const hv=highCards.map(c=>RANK_VALUES[c.rank]).sort((a,b)=>a-b);
+if (hv[hv.length-1]-hv[0]<=4) return {heldIndices:highCardIndices.slice(0,3),ev:0.51};
+return {heldIndices:highCardIndices.slice(0,2),ev:0.46};
+}
+if (highCards.length===2) return {heldIndices:highCardIndices.slice(0,2),ev:0.46};
+// 3-card SF
+if (maxSuitCount>=3) {
+const sv=cards.filter(c=>c.suit===maxSuit).map(c=>RANK_VALUES[c.rank]).sort((a,b)=>a-b);
+for (let i=0;i<=sv.length-3;i++) {
+if (sv[i+2]-sv[i]<=4) {
+const tv=[sv[i],sv[i+1],sv[i+2]];
+return {heldIndices:cards.map((c,idx)=>c.suit===maxSuit&&tv.includes(RANK_VALUES[c.rank])?idx:-1).filter(i=>i>=0),ev:0.48};
+}
+}
+}
+if (highCards.length===1) return {heldIndices:[highCardIndices[0]],ev:0.36};
+return {heldIndices:[],ev:0.41};
+}
+
+// DEUCES STRATEGY
+const di=cards.map((c,i)=>c.rank===‘2’?i:-1).filter(i=>i>=0);
+if (deuceCount===4) return {heldIndices:[0,1,2,3,4],ev:200};
+if (deuceCount===3) {
+const nd=cards.filter(c=>c.rank!==‘2’), rr=[‘T’,‘J’,‘Q’,‘K’,‘A’];
+if (nd.length===2&&nd.every(c=>rr.includes(c.rank))&&nd[0].suit===nd[1].suit) return {heldIndices:[0,1,2,3,4],ev:25};
+if (maxCount===5) return {heldIndices:[0,1,2,3,4],ev:15};
+return {heldIndices:di,ev:7.0};
+}
+if (deuceCount===2) {
+if (isFlush&&isStraight&&rankValues.includes(14)) return {heldIndices:[0,1,2,3,4],ev:25};
+if (maxCount===5) return {heldIndices:[0,1,2,3,4],ev:15};
+if (isFlush&&isStraight) return {heldIndices:[0,1,2,3,4],ev:13};
+if (maxCount===4) {
+const pr=Object.keys(rankCounts).find(r=>rankCounts[r]===2);
+if (pr) return {heldIndices:[…di,…cards.map((c,i)=>c.rank===pr?i:-1).filter(i=>i>=0)],ev:5.4};
+return {heldIndices:[0,1,2,3,4],ev:5};
+}
+if (maxSuitCount>=2) {
+const snd=cards.filter(c=>c.suit===maxSuit&&c.rank!==‘2’), rr=[‘T’,‘J’,‘Q’,‘K’,‘A’];
+if (snd.filter(c=>rr.includes(c.rank)).length===2) {
+return {heldIndices:[…di,…cards.map((c,i)=>c.suit===maxSuit&&rr.includes(c.rank)?i:-1).filter(i=>i>=0)].slice(0,4),ev:5.5};
+}
+if (snd.length>=2) {
+const sv=snd.map(c=>RANK_VALUES[c.rank]).sort((a,b)=>a-b);
+if (sv[sv.length-1]-sv[0]<=4) {
+return {heldIndices:[…di,…cards.map((c,i)=>c.suit===maxSuit&&c.rank!==‘2’?i:-1).filter(i=>i>=0)].slice(0,4),ev:4.5};
+}
+}
+}
+return {heldIndices:di,ev:3.5};
+}
+if (deuceCount===1) {
+if (isFlush&&isStraight&&rankValues.includes(14)) return {heldIndices:[0,1,2,3,4],ev:25};
+if (maxCount===5) return {heldIndices:[0,1,2,3,4],ev:15};
+if (isFlush&&isStraight) return {heldIndices:[0,1,2,3,4],ev:13};
+if (maxCount===4) return {heldIndices:[0,1,2,3,4],ev:5};
+if (maxCount===3&&secondCount===2) return {heldIndices:[0,1,2,3,4],ev:3};
+if (maxSuitCount>=3) {
+const snd=cards.filter(c=>c.suit===maxSuit&&c.rank!==‘2’), rr=[‘T’,‘J’,‘Q’,‘K’,‘A’];
+if (snd.filter(c=>rr.includes(c.rank)).length===3) {
+return {heldIndices:[…di,…cards.map((c,i)=>c.suit===maxSuit&&rr.includes(c.rank)?i:-1).filter(i=>i>=0)].slice(0,4),ev:3.5};
+}
+}
+if (isFlush) return {heldIndices:[0,1,2,3,4],ev:3};
+if (maxCount===3) {
+const pr=Object.keys(rankCounts).find(r=>rankCounts[r]===2);
+if (pr) return {heldIndices:[…di,…cards.map((c,i)=>c.rank===pr?i:-1).filter(i=>i>=0)],ev:2.2};
+}
+if (isStraight) return {heldIndices:[0,1,2,3,4],ev:2};
+if (maxSuitCount>=3) {
+const snd=cards.filter(c=>c.suit===maxSuit&&c.rank!==‘2’);
+if (snd.length>=3) {
+const sv=snd.map(c=>RANK_VALUES[c.rank]).sort((a,b)=>a-b);
+if (sv[sv.length-1]-sv[0]<=4) return {heldIndices:[…di,…cards.map((c,i)=>c.suit===maxSuit&&c.rank!==‘2’?i:-1).filter(i=>i>=0)].slice(0,4),ev:2.5};
+}
+}
+if (maxSuitCount>=2) {
+const snd=cards.filter(c=>c.suit===maxSuit&&c.rank!==‘2’), rr=[‘T’,‘J’,‘Q’,‘K’,‘A’];
+if (snd.filter(c=>rr.includes(c.rank)).length===2) {
+return {heldIndices:[…di,…cards.map((c,i)=>c.suit===maxSuit&&rr.includes(c.rank)?i:-1).filter(i=>i>=0)].slice(0,3),ev:2.0};
+}
+if (snd.length>=2) {
+const sv=snd.map(c=>RANK_VALUES[c.rank]).sort((a,b)=>a-b);
+if (sv[sv.length-1]-sv[0]===1) return {heldIndices:[…di,…cards.map((c,i)=>c.suit===maxSuit&&c.rank!==‘2’?i:-1).filter(i=>i>=0)].slice(0,3),ev:1.9};
+}
+}
+if (pairRanks.length>0) return {heldIndices:[…di,…cards.map((c,i)=>c.rank===pairRanks[0]?i:-1).filter(i=>i>=0)],ev:1.85};
+if (maxSuitCount>=2) {
+const snd=cards.filter(c=>c.suit===maxSuit&&c.rank!==‘2’);
+if (snd.length>=2) {
+const sv=snd.map(c=>RANK_VALUES[c.rank]).sort((a,b)=>a-b);
+if (sv[sv.length-1]-sv[0]<=4) return {heldIndices:[…di,…cards.map((c,i)=>c.suit===maxSuit&&c.rank!==‘2’?i:-1).filter(i=>i>=0)].slice(0,3),ev:1.8};
+}
+}
+if (maxSuitCount>=3) return {heldIndices:[…di,…cards.map((c,i)=>c.suit===maxSuit&&c.rank!==‘2’?i:-1).filter(i=>i>=0)].slice(0,4),ev:1.7};
+return {heldIndices:di,ev:1.5};
+}
+// 0 deuces
+if (maxCount>=4) return {heldIndices:[0,1,2,3,4],ev:25};
+if (maxCount===3&&secondCount===2) return {heldIndices:[0,1,2,3,4],ev:9};
+if (maxSuitCount>=4) {
+const sr=cards.filter(c=>c.suit===maxSuit).map(c=>c.rank), rr=[‘T’,‘J’,‘Q’,‘K’,‘A’];
+if (sr.filter(r=>rr.includes(r)).length===4) {
+return {heldIndices:cards.map((c,i)=>c.suit===maxSuit&&rr.includes(c.rank)?i:-1).filter(i=>i>=0),ev:2.8};
+}
+}
+if (isFlush) return {heldIndices:[0,1,2,3,4],ev:6};
+if (isStraight) return {heldIndices:[0,1,2,3,4],ev:4};
+if (maxCount===3) {
+const tr=Object.keys(rankCounts).find(r=>rankCounts[r]===3);
+return {heldIndices:cards.map((c,i)=>c.rank===tr?i:-1).filter(i=>i>=0),ev:3};
+}
+if (maxSuitCount>=4) return {heldIndices:suitedIndices.slice(0,4),ev:2.6};
+if (maxSuitCount>=3) {
+const sr=cards.filter(c=>c.suit===maxSuit).map(c=>c.rank), rr=[‘T’,‘J’,‘Q’,‘K’,‘A’];
+if (sr.filter(r=>rr.includes(r)).length>=3) {
+return {heldIndices:cards.map((c,i)=>c.suit===maxSuit&&rr.includes(c.rank)?i:-1).filter(i=>i>=0).slice(0,3),ev:1.2};
+}
+}
+if (pairRanks.length>0) {
+const sp=pairRanks.sort((a,b)=>RANK_VALUES[b]-RANK_VALUES[a]);
+return {heldIndices:cards.map((c,i)=>c.rank===sp[0]?i:-1).filter(i=>i>=0),ev:0.8};
+}
+if (maxSuitCount===4) return {heldIndices:suitedIndices,ev:0.7};
+if (maxSuitCount>=3) {
+const sv=cards.filter(c=>c.suit===maxSuit).map(c=>RANK_VALUES[c.rank]).sort((a,b)=>a-b);
+for (let i=0;i<=sv.length-3;i++) {
+const span=sv[i+2]-sv[i], tv=[sv[i],sv[i+1],sv[i+2]];
+if (span===2||span===3) {
+return {heldIndices:cards.map((c,idx)=>c.suit===maxSuit&&tv.includes(RANK_VALUES[c.rank])?idx:-1).filter(i=>i>=0),ev:span===2?0.6:0.55};
+}
+}
+}
+return {heldIndices:[],ev:0.45};
+};
+
+// Card component
+const Card = ({ card, isHeld, isHoldable, onClick, compact, isRecommended }) => {
+const isRed = card.suit===‘♥’||card.suit===‘♦’;
+const cf=compact?8:12, sf=compact?6:10, cs=compact?14:24;
+return (
+<div onClick={onClick} style={{
+aspectRatio:‘2.5/3.5’, borderRadius:compact?3:6, background:’#fff’,
+boxShadow: isRecommended ? ‘0 0 0 3px #10b981, 0 3px 8px rgba(0,0,0,0.4)’
+: isHeld ? ‘0 0 0 3px #FFD700, 0 6px 16px rgba(255,215,0,0.5)’ : ‘0 3px 8px rgba(0,0,0,0.4)’,
+transform: isHeld ? ‘translateY(-8px)’ : ‘none’,
+transition:‘all 0.2s ease’, cursor:isHoldable?‘pointer’:‘default’,
+position:‘relative’, display:‘flex’, flexDirection:‘column’,
+justifyContent:‘space-between’, padding:compact?‘2px’:‘3px 4px’,
+userSelect:‘none’, color:isRed?’#dc2626’:’#111827’,
+}}>
+<div style={{fontSize:cf,fontWeight:800,lineHeight:1,display:‘flex’,flexDirection:‘column’,alignItems:‘flex-start’}}>
+<span>{card.rank}</span><span style={{fontSize:sf}}>{card.suit}</span>
+</div>
+<div style={{position:‘absolute’,top:‘50%’,left:‘50%’,transform:‘translate(-50%,-50%)’,fontSize:cs,lineHeight:1,pointerEvents:‘none’}}>{card.suit}</div>
+<div style={{fontSize:cf,fontWeight:800,lineHeight:1,display:‘flex’,flexDirection:‘column’,alignItems:‘flex-end’,transform:‘rotate(180deg)’}}>
+<span>{card.rank}</span><span style={{fontSize:sf}}>{card.suit}</span>
+</div>
+{isHeld && <div style={{position:‘absolute’,bottom:-14,left:0,right:0,textAlign:‘center’,fontSize:8,fontWeight:800,color:’#FFD700’,letterSpacing:1}}>HOLD</div>}
+</div>
+);
+};
+
+export default function UltimateXPoker() {
+const [gameType, setGameType] = useState(‘Jacks or Better’);
+const [payTableVariant, setPayTableVariant] = useState(‘8/5’);
+const [playMode, setPlayMode] = useState(1);
+const [multiplier, setMultiplier] = useState(3);
+const [multiplierInput, setMultiplierInput] = useState(‘3’);
+const [hands, setHands] = useState([]);
+const [held, setHeld] = useState([]);
+const heldRef = useRef([]);
+useEffect(() => { heldRef.current = held; }, [held]);
+const [ultimateXMultipliers, setUltimateXMultipliers] = useState([]);
+const [credits, setCredits] = useState(1000);
+const [isDealt, setIsDealt] = useState(false);
+const [results, setResults] = useState([]);
+const [analyzerMode, setAnalyzerMode] = useState(false);
+const [analyzerCards, setAnalyzerCards] = useState([]);
+const [removedCards, setRemovedCards] = useState([]);
+const [strategy, setStrategy] = useState(null);
+const [showPayTable, setShowPayTable] = useState(false);
+const [analyzerPlayMode, setAnalyzerPlayMode] = useState(1);
+const [showResults, setShowResults] = useState(false);
+const [mistakeWarned, setMistakeWarned] = useState(false);
+const [warningMessage, setWarningMessage] = useState(null);
+
+const currentPayTable = PAY_TABLES[gameType][payTableVariant];
+const betAmount = 5 * playMode;
+
+const deal = useCallback(() => {
+const deck = shuffleDeck(createDeck());
+const firstFive = deck.slice(0, 5);
+const newHands = Array(playMode).fill(null).map(() => […firstFive]);
+setHands(newHands);
+setHeld(Array(playMode).fill(null).map(() => [false,false,false,false,false]));
+setIsDealt(true); setResults([]); setShowResults(false);
+setMistakeWarned(false); setWarningMessage(null);
+setCredits(c => c - betAmount);
+setUltimateXMultipliers(prev => {
+const nm = Array(playMode).fill(0).map((_,i) => prev[i]||1);
+const total = nm.reduce((s,m)=>s+m,0);
+setMultiplier(total); setMultiplierInput(String(total));
+return nm;
+});
+}, [playMode, betAmount]);
+
+const toggleHold = (handIndex, cardIndex) => {
+if (!isDealt || results.length>0) return;
+const nh = […held], hh = […nh[handIndex]];
+if (handIndex===0) {
+hh[cardIndex] = !hh[cardIndex];
+for (let i=0; i<playMode; i++) nh[i]=[…hh];
+}
+setHeld(nh);
+};
+
+const checkForMistakes = useCallback(() => {
+if (mistakeWarned) return true;
+const fh = hands[0], fheld = heldRef.current[0]||held[0];
+const hi = fheld.map((h,i)=>h?i:-1).filter(i=>i>=0);
+const rec = analyzeStrategy(fh, gameType, currentPayTable, playMode);
+if (hi.sort().join(’,’) !== rec.heldIndices.sort().join(’,’)) {
+setWarningMessage({
+userCards: hi.length>0 ? hi.map(i=>fh[i].rank+fh[i].suit).join(’ ‘) : ‘nothing’,
+recommendedCards: rec.heldIndices.length>0 ? rec.heldIndices.map(i=>fh[i].rank+fh[i].suit).join(’ ’) : ‘Discard all’,
+ev: rec.ev.toFixed(2),
+});
+setMistakeWarned(true); return false;
+}
+return true;
+}, [hands, held, gameType, currentPayTable, playMode, mistakeWarned]);
+
+const draw = useCallback(() => {
+const newHands = hands.map((hand, hi) => {
+const deck = shuffleDeck(createDeck());
+const heldIds = hand.filter((_,idx)=>held[hi][idx]).map(c=>c.id);
+const avail = deck.filter(c=>!heldIds.includes(c.id));
+let di=0;
+return hand.map((card, ci) => held[hi][ci] ? card : avail[di++]);
+});
+const newResults = newHands.map((hand, hi) => {
+const r = evaluateHand(hand, gameType, currentPayTable);
+const cm = ultimateXMultipliers[hi]||1;
+return { …r, winAmount: r.payout*5*cm, multiplier: cm };
+});
+setCredits(c => c + newResults.reduce((s,r)=>s+r.winAmount,0));
+const newMults = newResults.map(r => {
+if (!r.payout) return 1;
+return ULTIMATE_X_MULTIPLIERS[gameType]?.[payTableVariant]?.[r.hand] || 2;
+});
+setHands(newHands); setResults(newResults);
+setUltimateXMultipliers(newMults); setIsDealt(false);
+}, [hands, held, gameType, currentPayTable, ultimateXMultipliers, payTableVariant]);
+
+const attemptDraw = useCallback(() => {
+if (checkForMistakes()) { setWarningMessage(null); draw(); }
+}, [checkForMistakes, draw]);
+
+const analyzeHand = useCallback(() => {
+if (analyzerCards.length===5) setStrategy(analyzeStrategy(analyzerCards, gameType, currentPayTable, analyzerPlayMode));
+else setStrategy(null);
+}, [analyzerCards, gameType, currentPayTable, analyzerPlayMode]);
+
+const addAnalyzerCard = (card) => {
+if (analyzerCards.length<5&&!removedCards.includes(card.id)) setAnalyzerCards([…analyzerCards,card]);
+};
+const removeAnalyzerCard = (i) => setAnalyzerCards(analyzerCards.filter((_,j)=>j!==i));
+const toggleCardRemoval = (id) => {
+if (removedCards.includes(id)) setRemovedCards(removedCards.filter(x=>x!==id));
+else { setRemovedCards([…removedCards,id]); setAnalyzerCards(analyzerCards.filter(c=>c.id!==id)); }
+};
+const resetAnalyzer = () => { setAnalyzerCards([]); setRemovedCards([]); setStrategy(null); };
+
+const S = {
+wrap: {minHeight:‘100vh’,background:‘linear-gradient(135deg,#1a1a2e,#16213e)’,color:’#fff’,padding:‘8px’,fontFamily:‘system-ui’},
+inner: {maxWidth:900,margin:‘0 auto’},
+sectionLabel: {fontSize:‘0.7rem’,fontWeight:700,marginBottom:4,color:’#facc15’,textTransform:‘uppercase’},
+btn: {padding:‘6px 14px’,borderRadius:8,fontWeight:600,border:‘none’,cursor:‘pointer’,fontSize:‘0.75rem’,transition:‘all 0.15s’},
+btnPrimary: {background:‘linear-gradient(135deg,#FFD700,#FFA500)’,color:’#1F2937’,boxShadow:‘0 3px 10px rgba(255,215,0,0.4)’},
+btnSecondary: {background:‘linear-gradient(135deg,#8B5CF6,#6366F1)’,color:‘white’},
+btnGame: {padding:‘5px 10px’,background:‘rgba(255,255,255,0.1)’,border:‘2px solid rgba(255,255,255,0.2)’,color:‘white’,borderRadius:7,fontSize:‘0.7rem’,cursor:‘pointer’,fontWeight:600},
+btnGameActive: {background:‘linear-gradient(135deg,#FFD700,#FFA500)’,color:’#1F2937’,borderColor:’#FFD700’},
+badge: {display:‘inline-flex’,alignItems:‘center’,justifyContent:‘center’,background:‘linear-gradient(135deg,#FF6B6B,#FF8E53)’,color:‘white’,fontWeight:700,borderRadius:999,padding:‘2px 6px’,fontSize:‘0.6rem’},
+};
+
+const BtnGame = ({label, active, onClick}) => (
+<button onClick={onClick} style={{...S.btnGame,...(active?S.btnGameActive:{})}}>{label}</button>
+);
+
+return (
+<div style={S.wrap}>
+<style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.7}}.ap{animation:pulse 2s ease-in-out infinite}`}</style>
+<div style={S.inner}>
+{/* Header */}
+<div style={{textAlign:‘center’,marginBottom:12}}>
+<h1 style={{fontSize:‘1.6rem’,fontWeight:800,marginBottom:6,background:‘linear-gradient(135deg,#FFD700,#FFA500,#FF6B6B)’,WebkitBackgroundClip:‘text’,WebkitTextFillColor:‘transparent’}}>
+⚡ ULTIMATE X POKER ⚡
+</h1>
+<div style={{display:‘inline-flex’,alignItems:‘center’,gap:8,background:‘rgba(0,0,0,0.4)’,padding:‘6px 20px’,borderRadius:8,fontSize:‘1rem’,fontWeight:700}}>
+🏆 Credits: {credits}
+</div>
+</div>
+
+```
+    {/* Mode toggle */}
+    <div style={{display:'flex',gap:8,justifyContent:'center',marginBottom:12}}>
+      <button style={{...S.btn,...(!analyzerMode?S.btnPrimary:{...S.btnGame})}} onClick={()=>{setAnalyzerMode(false);resetAnalyzer();}}>▶ Play</button>
+      <button style={{...S.btn,...(analyzerMode?S.btnPrimary:{...S.btnGame})}} onClick={()=>setAnalyzerMode(true)}>🧠 Analyzer</button>
+    </div>
+
+    {!analyzerMode ? (
+      <>
+        {/* Game type */}
+        <div style={{marginBottom:10}}>
+          <div style={S.sectionLabel}>Game Type</div>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:4}}>
+            {Object.keys(PAY_TABLES).map(g=>(
+              <BtnGame key={g} label={g} active={gameType===g} onClick={()=>{setGameType(g);setPayTableVariant(Object.keys(PAY_TABLES[g])[0]);setIsDealt(false);setResults([]);}} />
+            ))}
+          </div>
+        </div>
+
+        {/* Pay table variant */}
+        <div style={{marginBottom:10}}>
+          <div style={S.sectionLabel}>Pay Table</div>
+          <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+            {Object.keys(PAY_TABLES[gameType]).map(v=>(
+              <BtnGame key={v} label={v} active={payTableVariant===v} onClick={()=>{ if(payTableVariant===v){setShowPayTable(!showPayTable);}else{setPayTableVariant(v);setIsDealt(false);setResults([]);setShowPayTable(false);} }} />
+            ))}
+          </div>
+        </div>
+
+        {/* Play mode */}
+        <div style={{marginBottom:10}}>
+          <div style={S.sectionLabel}>Play Mode (5 credits/hand)</div>
+          <div style={{display:'flex',gap:6}}>
+            {[1,3,5,10].map(m=>(
+              <BtnGame key={m} label={m===1?'Single':`${m} Hands`} active={playMode===m} onClick={()=>{setPlayMode(m);setIsDealt(false);setResults([]);setUltimateXMultipliers([]);}} />
+            ))}
+          </div>
+        </div>
+
+        {/* Multiplier pool */}
+        <div style={{marginBottom:10}}>
+          <div style={S.sectionLabel}>Ultimate X Multiplier Pool</div>
+          <div style={{display:'flex',alignItems:'center',gap:8}}>
+            <input type="number" min={3} max={36} value={multiplierInput}
+              onChange={e=>setMultiplierInput(e.target.value)}
+              onBlur={()=>{ const v=parseInt(multiplierInput,10); const c=isNaN(v)?3:Math.min(36,Math.max(3,v)); setMultiplier(c);setMultiplierInput(String(c)); }}
+              style={{width:58,padding:'4px 8px',borderRadius:7,border:'2px solid rgba(255,215,0,0.5)',background:'rgba(0,0,0,0.5)',color:'#FFD700',fontSize:'1rem',fontWeight:700,textAlign:'center',outline:'none'}}
+            />
+            <span style={{color:'rgba(255,255,255,0.4)',fontSize:'0.65rem'}}>auto-updates on deal</span>
+          </div>
+          {playMode>1 && ultimateXMultipliers.length>0 && (
+            <div style={{background:'rgba(0,0,0,0.4)',borderRadius:8,padding:8,marginTop:6,border:'1px solid rgba(255,215,0,0.2)'}}>
+              <div style={{textAlign:'center',fontWeight:700,fontSize:'0.65rem',color:'#FFD700',marginBottom:4}}>NEXT HAND MULTIPLIERS</div>
+              <div style={{display:'grid',gridTemplateColumns:`repeat(${Math.min(playMode,5)},1fr)`,gap:4}}>
+                {ultimateXMultipliers.map((m,i)=>(
+                  <div key={i} style={{background:m>1?'linear-gradient(135deg,#FF6B6B,#FF8E53)':'rgba(255,255,255,0.1)',borderRadius:5,padding:4,textAlign:'center',border:m>1?'2px solid rgba(255,215,0,0.3)':'1px solid rgba(255,255,255,0.1)'}}>
+                    <div style={{fontSize:'0.5rem',color:'rgba(255,255,255,0.7)'}}>H{i+1}</div>
+                    <div style={{fontSize:'0.9rem',fontWeight:800}}>{m}X</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Active multipliers banner */}
+        {!isDealt && ultimateXMultipliers.some(m=>m>1) && (
+          <div style={{marginBottom:10,padding:10,background:'linear-gradient(135deg,#10b981,#059669)',borderRadius:8,border:'2px solid #34d399',textAlign:'center'}}>
+            <div style={{fontSize:12,fontWeight:'bold',marginBottom:6}}>🎰 ACTIVE MULTIPLIERS 🎰</div>
+            <div style={{display:'grid',gridTemplateColumns:`repeat(${Math.min(playMode,5)},1fr)`,gap:5,maxWidth:350,margin:'0 auto'}}>
+              {ultimateXMultipliers.map((m,i)=>(
+                <div key={i} style={{padding:5,background:m>1?'rgba(251,191,36,0.3)':'rgba(255,255,255,0.15)',borderRadius:5,border:m>1?'2px solid #fbbf24':'1px solid rgba(255,255,255,0.3)'}}>
+                  <div style={{fontSize:8,opacity:0.8}}>H{i+1}</div>
+                  <div style={{fontSize:m>1?16:12,fontWeight:'bold',color:m>1?'#fbbf24':'white'}}>{m}X</div>
+                </div>
+              ))}
+            </div>
+            <div style={{fontSize:10,marginTop:5,fontWeight:'bold'}}>Pool: {multiplier}X</div>
+          </div>
+        )}
+
+        {/* Hands */}
+        <div style={{display:'grid',gap:8,marginBottom:10,gridTemplateColumns:'1fr'}}>
+          {hands.map((hand, hi) => {
+            if (playMode>1&&isDealt&&results.length===0&&hi!==0) return null;
+            if (playMode>=5&&results.length>0&&!showResults&&hi!==0) return null;
+            return (
+              <div key={hi} style={{background:'rgba(0,0,0,0.4)',borderRadius:8,padding:10,backdropFilter:'blur(10px)'}}>
+                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:6}}>
+                  <span style={{fontSize:'0.7rem',fontWeight:700,color:'#facc15'}}>HAND {hi+1}</span>
+                  <div style={{display:'flex',gap:3}}>
+                    {(ultimateXMultipliers[hi]||1)>1&&!results[hi] && <span style={S.badge} className="ap">{ultimateXMultipliers[hi]}X ACTIVE</span>}
+                    {results[hi] && <span style={{...S.badge,background:'linear-gradient(135deg,#6366f1,#8b5cf6)'}}>NEXT: {ultimateXMultipliers[hi]}X</span>}
+                  </div>
+                </div>
+                <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:4,marginBottom:results[hi]?8:4}}>
+                  {hand.map((card,ci)=>(
+                    <Card key={ci} card={card} isHeld={held[hi]?.[ci]} isHoldable={hi===0&&isDealt&&results.length===0}
+                      onClick={()=>hi===0&&toggleHold(hi,ci)} compact={false} />
+                  ))}
+                </div>
+                {results[hi] && (
+                  <div style={{textAlign:'center'}}>
+                    <div style={{fontWeight:700,color:'#FBBF24',fontSize:'0.85rem',marginBottom:2}}>{results[hi].hand}</div>
+                    {results[hi].payout>0 ? (
+                      <div style={{color:'#10B981',fontWeight:800,fontSize:'1rem'}}>
+                        +{results[hi].winAmount}
+                        <span style={{fontSize:'0.6rem',color:'rgba(255,255,255,0.5)',marginLeft:4}}>
+                          ({results[hi].payout}×5{results[hi].multiplier>1?` ×${results[hi].multiplier}X`:''})
+                        </span>
+                      </div>
+                    ) : <div style={{fontSize:'0.65rem',color:'rgba(255,255,255,0.4)'}}>No win</div>}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Warning */}
+        {warningMessage && (
+          <div style={{marginBottom:10,padding:14,background:'linear-gradient(135deg,#f59e0b,#dc2626)',borderRadius:10,border:'3px solid #fbbf24',textAlign:'center'}}>
+            <div style={{fontSize:16,fontWeight:'bold',marginBottom:6}}>⚠️ STRATEGY WARNING ⚠️</div>
+            <div style={{fontSize:12,marginBottom:3}}><strong>You held:</strong> {warningMessage.userCards}</div>
+            <div style={{fontSize:12,marginBottom:3}}><strong>Better play:</strong> {warningMessage.recommendedCards}</div>
+            <div style={{fontSize:12,marginBottom:3}}><strong>EV:</strong> {warningMessage.ev}</div>
+            <div style={{fontSize:10,marginTop:6,fontWeight:'bold'}}>Click DRAW again to proceed anyway.</div>
+          </div>
+        )}
+
+        {/* Action buttons */}
+        <div style={{display:'flex',gap:10,justifyContent:'center',marginBottom:8}}>
+          {!isDealt ? (
+            <button style={{...S.btn,...S.btnPrimary,fontSize:'0.9rem',padding:'8px 24px'}}
+              onClick={deal} disabled={credits<betAmount}>
+              DEAL -- {playMode>1?`${playMode}×5=`:''}{betAmount} Credits
+            </button>
+          ) : (
+            <button style={{...S.btn,...S.btnSecondary,fontSize:'0.9rem',padding:'8px 24px'}} onClick={attemptDraw}>DRAW</button>
+          )}
+        </div>
+        {playMode>=5&&results.length>0&&(
+          <div style={{display:'flex',justifyContent:'center',marginBottom:8}}>
+            <button style={{...S.btn,background:showResults?'linear-gradient(135deg,#6366f1,#8b5cf6)':'linear-gradient(135deg,#10b981,#059669)',color:'white'}}
+              onClick={()=>setShowResults(!showResults)}>
+              {showResults?'▲ Hide Results':`▼ See All ${playMode} Results`}
+            </button>
+          </div>
+        )}
+      </>
+    ) : (
+      <>
+        {/* Analyzer */}
+        <div style={{marginBottom:8}}>
+          <div style={S.sectionLabel}>Game</div>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:4}}>
+            {Object.keys(PAY_TABLES).map(g=>(
+              <BtnGame key={g} label={g} active={gameType===g} onClick={()=>{setGameType(g);setPayTableVariant(Object.keys(PAY_TABLES[g])[0]);setStrategy(null);}} />
+            ))}
+          </div>
+        </div>
+        <div style={{marginBottom:8}}>
+          <div style={S.sectionLabel}>Pay Table</div>
+          <div style={{display:'flex',gap:5,flexWrap:'wrap'}}>
+            {Object.keys(PAY_TABLES[gameType]).map(v=>(
+              <BtnGame key={v} label={v} active={payTableVariant===v} onClick={()=>{if(payTableVariant===v){setShowPayTable(!showPayTable);}else{setPayTableVariant(v);setStrategy(null);setShowPayTable(false);}}} />
+            ))}
+          </div>
+        </div>
+        <div style={{marginBottom:8}}>
+          <div style={S.sectionLabel}>Analyzing For</div>
+          <div style={{display:'flex',gap:5}}>
+            {[1,3,5,10].map(m=>(
+              <BtnGame key={m} label={m===1?'Single':`${m} Hands`} active={analyzerPlayMode===m} onClick={()=>{setAnalyzerPlayMode(m);setStrategy(null);}} />
+            ))}
+          </div>
+        </div>
+        <div style={{marginBottom:8}}>
+          <div style={S.sectionLabel}>Active Multiplier</div>
+          <div style={{display:'flex',alignItems:'center',gap:6}}>
+            <input type="number" min={analyzerPlayMode} max={analyzerPlayMode*12} value={multiplierInput}
+              onChange={e=>{const v=parseInt(e.target.value,10);if(!isNaN(v)){setMultiplierInput(String(v));setMultiplier(v);setStrategy(null);}else setMultiplierInput(e.target.value);}}
+              onBlur={()=>{const v=parseInt(multiplierInput,10);if(isNaN(v)||v<analyzerPlayMode){setMultiplierInput(String(analyzerPlayMode));setMultiplier(analyzerPlayMode);}}}
+              style={{width:55,padding:'4px 8px',borderRadius:7,border:'2px solid rgba(255,215,0,0.5)',background:'rgba(0,0,0,0.5)',color:'#FFD700',fontSize:'1rem',fontWeight:700,textAlign:'center',outline:'none'}}
+            />
+            <span style={{color:'white'}}>X</span>
+          </div>
+        </div>
+
+        {/* Selected cards */}
+        <div style={S.sectionLabel}>Select 5 Cards</div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:6,marginBottom:10}}>
+          {analyzerCards.map((card,i)=>(
+            <Card key={i} card={card} isRecommended={strategy?.heldIndices.includes(i)} onClick={()=>removeAnalyzerCard(i)} isHoldable={true} compact={false} />
+          ))}
+          {Array(5-analyzerCards.length).fill(null).map((_,i)=>(
+            <div key={`e${i}`} style={{aspectRatio:'2.5/3.5',borderRadius:6,background:'rgba(107,114,128,0.3)',border:'2px dashed rgba(255,255,255,0.1)'}} />
+          ))}
+        </div>
+
+        {/* Deck picker */}
+        <div style={S.sectionLabel}>Deck -- tap to add / remove</div>
+        <div style={{maxHeight:125,overflowY:'auto',background:'rgba(0,0,0,0.35)',borderRadius:7,padding:'4px 3px'}}>
+          {SUITS.map(suit=>{
+            const isRed=suit==='♥'||suit==='♦';
+            return (
+              <div key={suit} style={{display:'flex',gap:2,marginBottom:2,alignItems:'center'}}>
+                <span style={{color:isRed?'#ef4444':'#e2e8f0',fontSize:10,fontWeight:700,width:12,flexShrink:0,textAlign:'center'}}>{suit}</span>
+                {RANKS.map(rank=>{
+                  const card={rank,suit,id:`${rank}${suit}`};
+                  const isSel=analyzerCards.some(c=>c.id===card.id);
+                  const isRem=removedCards.includes(card.id);
+                  return (
+                    <div key={card.id} onClick={()=>{
+                      if(isSel) return;
+                      if(isRem) setRemovedCards(removedCards.filter(x=>x!==card.id));
+                      else if(analyzerCards.length<5) addAnalyzerCard(card);
+                      else toggleCardRemoval(card.id);
+                    }} style={{
+                      width:22,height:32,background:isRem?'#374151':isSel?'#fef9c3':'#fff',
+                      borderRadius:3,boxShadow:isSel?'0 0 0 2px #f59e0b':'0 2px 4px rgba(0,0,0,0.4)',
+                      cursor:isSel?'default':'pointer',position:'relative',flexShrink:0,
+                      opacity:isRem?0.35:1,transition:'all 0.15s',display:'flex',flexDirection:'column',
+                      justifyContent:'space-between',padding:'1px 2px',
+                      color:isRem?'#6b7280':isRed?'#dc2626':'#111827',
+                    }}>
+                      <div style={{fontSize:7,fontWeight:800,lineHeight:1,display:'flex',flexDirection:'column',alignItems:'flex-start'}}>
+                        <span>{rank}</span><span style={{fontSize:6}}>{suit}</span>
+                      </div>
+                      <div style={{position:'absolute',top:'50%',left:'50%',transform:'translate(-50%,-50%)',fontSize:11,lineHeight:1}}>{suit}</div>
+                      <div style={{fontSize:7,fontWeight:800,lineHeight:1,display:'flex',flexDirection:'column',alignItems:'flex-end',transform:'rotate(180deg)'}}>
+                        <span>{rank}</span><span style={{fontSize:6}}>{suit}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+        <div style={{display:'flex',gap:6,marginTop:8}}>
+          <button style={{...S.btn,...S.btnPrimary,flex:1}} disabled={analyzerCards.length!==5} onClick={analyzeHand}>ANALYZE</button>
+          <button style={{...S.btnGame}} onClick={resetAnalyzer}>RESET</button>
+        </div>
+        {strategy && (
+          <div style={{marginTop:8,background:'rgba(0,0,0,0.4)',padding:12,borderRadius:8,textAlign:'center'}}>
+            <div style={{fontWeight:'bold',color:'#facc15',marginBottom:4,fontSize:'0.8rem'}}>STRATEGY RECOMMENDATION</div>
+            <div style={{color:'#4ade80',fontWeight:800,fontSize:'1rem',marginBottom:4}}>EV: {strategy.ev.toFixed(2)}</div>
+            <div style={{fontSize:'0.8rem'}}>
+              {strategy.heldIndices.length===0 ? <span style={{color:'#f87171'}}>Discard all</span>
+                : strategy.heldIndices.length===5 ? <span style={{color:'#4ade80'}}>Hold all</span>
+                : <span style={{color:'#60a5fa'}}>Hold positions: {strategy.heldIndices.map(i=>i+1).join(', ')}</span>}
+            </div>
+          </div>
+        )}
+      </>
+    )}
+
+    {/* Pay Table Modal */}
+    {showPayTable && (
+      <div onClick={()=>setShowPayTable(false)} style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.85)',backdropFilter:'blur(8px)',zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center',padding:16}}>
+        <div onClick={e=>e.stopPropagation()} style={{background:'linear-gradient(135deg,rgba(15,12,41,0.98),rgba(48,43,99,0.98))',borderRadius:12,padding:20,maxWidth:460,width:'100%',maxHeight:'80vh',overflowY:'auto',border:'2px solid rgba(255,215,0,0.3)'}}>
+          <div style={{textAlign:'center',marginBottom:10}}>
+            <div style={{color:'#FFD700',fontSize:'1rem',fontWeight:800}}>{gameType}</div>
+            <div style={{color:'rgba(255,255,255,0.6)',fontSize:'0.75rem'}}>{payTableVariant}</div>
+          </div>
+          <div style={{background:'rgba(0,0,0,0.4)',borderRadius:8,padding:8}}>
+            <div style={{display:'grid',gridTemplateColumns:'1fr auto auto',gap:8,padding:'4px 6px',borderBottom:'2px solid rgba(255,215,0,0.3)',fontSize:'0.65rem',fontWeight:700,color:'#FFD700',marginBottom:2}}>
+              <span>HAND</span><span style={{textAlign:'right'}}>PAYS</span><span style={{textAlign:'right'}}>ULT X</span>
+            </div>
+            {Object.entries(currentPayTable).map(([hand,payout])=>{
+              const ux=ULTIMATE_X_MULTIPLIERS[gameType]?.[payTableVariant]?.[hand];
+              return (
+                <div key={hand} style={{display:'grid',gridTemplateColumns:'1fr auto auto',gap:8,padding:'4px 6px',borderBottom:'1px solid rgba(255,255,255,0.08)',fontSize:'0.75rem'}}>
+                  <span style={{color:'rgba(255,255,255,0.9)'}}>{hand}</span>
+                  <span style={{color:'#FFD700',fontWeight:700,textAlign:'right'}}>{payout}</span>
+                  <span style={{color:ux?'#FF6B6B':'rgba(255,255,255,0.3)',fontWeight:700,textAlign:'right',minWidth:28}}>{ux?`${ux}X`:'--'}</span>
+                </div>
+              );
+            })}
+          </div>
+          <div style={{textAlign:'center',marginTop:8,fontSize:'0.6rem',color:'rgba(255,255,255,0.5)'}}>1-coin payouts shown</div>
+          <button onClick={()=>setShowPayTable(false)} style={{width:'100%',marginTop:8,padding:'7px',background:'linear-gradient(135deg,#8B5CF6,#6366F1)',color:'white',border:'none',borderRadius:8,fontWeight:700,cursor:'pointer'}}>CLOSE</button>
+        </div>
+      </div>
+    )}
+  </div>
+</div>
+```
+
+);
+}
+
+const root = ReactDOM.createRoot(document.getElementById(‘root’));
+root.render(<UltimateXPoker />);
+</script>
+
+</body>
+</html>
